@@ -1,0 +1,262 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<link rel='stylesheet' href='../../min.css'>
+
+	<title>Repeated sections (part two) | Ractive examples</title>
+
+	<style type='text/css'>
+	table {
+	border-spacing: 0;
+	width: 100%;
+	border: 1px solid rgba(0,0,0,0.3);
+	box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+	border-radius: 2px;
+}
+
+td, th {
+	padding: 0.5em;
+	text-align: left;
+}
+
+th {
+	background-color: rgba(0,0,0,0.7);
+	color: rgba(255,255,255,0.9);
+}
+
+td {
+	background-color: rgba(255,255,255, 0.7);
+	border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+td a {
+	font-weight: bold;
+}
+
+tr:last-child td {
+	border-bottom: none;
+}
+
+.sort {
+	position: relative;
+	padding-left: 1.5em;
+	cursor: pointer;
+	width: 33.3%;
+}
+
+.sort:before {
+	position: absolute;
+	left: 0.5em;
+	top: 1.2em;
+	content: '\25bd';
+	font-size: 0.7em;
+	color: rgba(255,255,255,0.3);
+}
+
+.sorted:before {
+	content: '\25bc';
+	color: rgba(255,255,255,0.9);
+}
+	</style>
+</head>
+
+
+<body>
+	<div class='small-menu'>
+		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
+	</div>
+
+	
+
+	<div class='tutorial-header'>
+		<h2>Repeated sections (part two)</h2>
+
+		<a class='prev' href='../repeated-sections-part-one'><span>&#9664;</span> prev</a>
+		<a class='next' href='../two-way-data-binding'>next <span>&#9654;</span></a>
+	</div>
+
+	
+	
+	<div class='notes'>
+		
+
+		
+		<p>In <a href='../repeated-sections-part-one'>part one</a>, we learnt the basics of how to create repeated sections with arrays, and that using the normal array mutator methods will keep your view up to date. In the second part, we learn some extra tricks, and build a sortable table of superheroes using an array section and a sprinkling of jQuery.</p>
+
+
+<h3>Keeping in sync</h3>
+
+<p>The view <em>can</em> get out of date &ndash; if, to use the example below, you did <code>x_men[0].power = 'Martial arts'</code> it wouldn't be reflected in the table, because we didn't use <code>view.set()</code> or one of the array methods. In these situations you can trigger a refresh with <code>view.update()</code> or <code>view.update('superheroes')</code>.</p>
+
+<h3>Finding the index</h3>
+<p>In many situations you will want to know the <em>index</em> of the array item &ndash; for example, if the user clicks on a table row or list item you'd want an easy way to identify which one. You can do this by defining an <em>index reference</em> with a colon, like so:</p>
+
+<pre class='prettyprint lang-html'>{{#section:i}}&lt;!-- in here, {{i}} resolves to the array index --&gt;{{/section}}</pre>
+
+<p>Index references can be used with formatters, which allows various neat tricks like alternating classes between even and odd items, and so on. In the example below, we're using a formatter to change our zero-based array numbering to more human-friendly one-based numbering.</p>
+
+<h3>Using events</h3>
+
+<p>In the example below, we are using the view's <code>set</code> event to ensure that whenever the data changes, we maintain the sort order. (<a href='../events'>Learn about events here.</a>).</p>
+
+<p>Try adding Storm to the list of X-Men below, by running this code &ndash; by pushing to the array, we trigger a <code>set</code>, which triggers a <code>sort</code>, which triggers another <code>set</code> (but only one, because infinite loops are bad!).</p>
+		
+		<div class='console-container'>
+			<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+			<div id='console' class='console' style='display: none;'>
+x_men.push({
+  name: 'Storm',
+  realname: 'Monroe, Ororo',
+  power: 'Controlling the weather',
+  info: 'http://www.superherodb.com/Storm/10-135/'
+});
+
+// NB we could also do view.get('superheroes').push({ ... })
+
+			</div>
+			<div id='console-reset'>reset</div>
+		</div>
+	</div>
+
+	<div class='main'>
+
+		<div id='output' class='output block'>
+			Please wait... page is loading
+		</div>
+		
+		<pre id='template' class='template block prettyprint lang-html'>&lt;p&gt;Click headers to sort:&lt;&#x2F;p&gt;
+
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th&gt;#&lt;&#x2F;th&gt;
+    &lt;th class=&#39;sort&#39; data-col=&#39;name&#39;&gt;Superhero name&lt;&#x2F;th&gt;
+    &lt;th class=&#39;sort&#39; data-col=&#39;realname&#39;&gt;Real name&lt;&#x2F;th&gt;
+    &lt;th class=&#39;sort&#39; data-col=&#39;power&#39;&gt;Superpower&lt;&#x2F;th&gt;
+  &lt;&#x2F;tr&gt;
+
+  {{#superheroes:i}}
+  &lt;tr data-id=&#39;{{i}}&#39;&gt;
+  	&lt;td&gt;{{i | plus_one}}&lt;&#x2F;td&gt;
+  	&lt;td&gt;&lt;a href=&#39;{{info}}&#39;&gt;{{name}}&lt;&#x2F;a&gt;&lt;&#x2F;td&gt;
+  	&lt;td&gt;{{realname}}&lt;&#x2F;td&gt;
+  	&lt;td&gt;{{power}}&lt;&#x2F;td&gt;
+  &lt;&#x2F;tr&gt;
+  {{&#x2F;superheroes}}
+&lt;&#x2F;table&gt;</pre>
+		
+
+		<pre id='script' class='script block prettyprint lang-js'>var x_men, view, sort, sortCol;
+
+&#x2F;&#x2F; define our superheroes
+x_men = [
+  { name: &#39;Nightcrawler&#39;, realname: &#39;Wagner, Kurt&#39;,     power: &#39;Teleportation&#39;, info: &#39;http:&#x2F;&#x2F;www.superherodb.com&#x2F;Nightcrawler&#x2F;10-107&#x2F;&#39; },
+  { name: &#39;Cyclops&#39;,      realname: &#39;Summers, Scott&#39;,   power: &#39;Optic blast&#39;,   info: &#39;http:&#x2F;&#x2F;www.superherodb.com&#x2F;Cyclops&#x2F;10-50&#x2F;&#39; },
+  { name: &#39;Mystique&#39;,     realname: &#39;Darkholme, Raven&#39;, power: &#39;Shapeshifting&#39;, info: &#39;http:&#x2F;&#x2F;www.superherodb.com&#x2F;Mystique&#x2F;10-817&#x2F;&#39; },
+  { name: &#39;Wolverine&#39;,    realname: &#39;Howlett, James&#39;,   power: &#39;Regeneration&#39;,  info: &#39;http:&#x2F;&#x2F;www.superherodb.com&#x2F;Wolverine&#x2F;10-161&#x2F;&#39; }
+];
+
+&#x2F;&#x2F; set up our dynamic table
+view = new Ractive({
+  el: &#39;output&#39;,
+  template: $(&#39;#template&#39;).text(),
+  data: { superheroes: x_men },
+  formatters: { plus_one: function ( n ) { return n + 1; } }
+});
+
+&#x2F;&#x2F; sort by column header
+sort = function () {
+  x_men.sort( function ( a, b ) {
+    return ( a[sortCol] &gt; b[sortCol] ? 1 : -1 );
+  });
+
+  $( &#39;table .sorted&#39; ).removeClass( &#39;sorted&#39; );
+  $( &#39;table .sort[data-col=&quot;&#39; + sortCol + &#39;&quot;]&#39; ).addClass( &#39;sorted&#39; );
+};
+
+&#x2F;&#x2F; trigger sort when user clicks on headers
+$( &#39;table .sort&#39; ).on( &#39;click&#39;, function () {
+  sortCol = this.getAttribute( &#39;data-col&#39; );
+  sort();
+});
+
+&#x2F;&#x2F; trigger sort when viewmodel gets updated
+view.on( &#39;set:superheroes&#39;, sort ); &#x2F;&#x2F; we could also just do view.on( &#39;set&#39;, sort )
+
+&#x2F;&#x2F; initially, sort by name
+sortCol = &#39;name&#39;;
+sort();</div>
+	</div>
+
+	<script src="../../lib/domready.js"></script>
+	<script src="../../lib/prettify.js"></script>
+
+	<script src="../../lib/codemirror/codemirror.js"></script>
+	<script src="../../lib/codemirror/javascript.js"></script>
+
+	<!-- Dependencies -->
+	<script src='http://code.jquery.com/jquery-1.9.1.min.js'></script>
+
+	<!-- Component source -->
+	<script src='../../lib/Ractive.js'></script>
+	
+	<!--<script src='../examples.js'></script>-->
+
+	<script>
+		domready( function () {
+			var codeMirror, consolePlaceholder, consoleContainer, consoleCode, trim, code, reset, script;
+
+			
+
+			if ( !String.prototype.trim ) {
+				String.prototype.trim = function () {
+					return this.replace( /^\s*/, '' ).replace( /\s*$/, '' );
+				}
+			}
+
+			script = document.getElementById( 'script' );
+			code = script.textContent || script.innerText;
+			
+
+			prettyPrint();
+
+			reset = function () {
+				eval( code );
+				codeMirror.setValue( consoleCode );
+
+				CodeMirror.keyMap.default.Enter = function ( cm ) {
+					var code = cm.getValue();
+
+					try {
+						eval( code );
+					} catch ( err ) {
+						console.error( err );
+						throw err;
+					}
+				};
+			};
+
+			consoleContainer = document.getElementById( 'console' );
+			consoleCode = consoleContainer.innerHTML.trim();
+			consoleContainer.innerHTML = '';
+
+			consolePlaceholder = document.getElementById( 'console-placeholder' );
+			consolePlaceholder.parentNode.removeChild( consolePlaceholder );
+
+			consoleContainer.style.display = 'block';
+
+			codeMirror = new CodeMirror( consoleContainer, {
+				value: consoleCode,
+				mode: 'javascript',
+				linenumbers: true,
+				autofocus: true,
+				theme: 'ractive'
+			});
+
+			document.getElementById( 'console-reset' ).addEventListener( 'click', reset );
+			reset();
+		});
+	</script>
+
+</body>
+</html>

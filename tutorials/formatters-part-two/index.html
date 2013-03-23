@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<link rel='stylesheet' href='../../min.css'>
+
+	<title>Formatters (advanced) | Ractive examples</title>
+
+	<style type='text/css'>
+	.bars {
+	text-align: center;
+}
+
+.bar {
+	height: 40px;
+	background-color: rgb(50,50,130);
+	color: white;
+	float: left;
+	text-align: right;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	margin: 0 0 0.5em 0;
+}
+
+.bar:first-child {
+	background-color: #729d34;
+	text-align: left;
+}
+
+.bar span {
+	padding: 10px;
+	display: block;
+}
+	</style>
+</head>
+
+
+<body>
+	<div class='small-menu'>
+		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
+	</div>
+
+	
+
+	<div class='tutorial-header'>
+		<h2>Formatters (advanced)</h2>
+
+		<a class='prev' href='../formatters-part-one'><span>&#9664;</span> prev</a>
+		<a class='next' href='../nested-properties'>next <span>&#9654;</span></a>
+	</div>
+
+	
+	
+	<div class='notes'>
+		
+
+		
+		<p>Formatters can be chained together &ndash; the output of one formatter provides the input to the next one. Seen the movie <em>The Human Centipede</em>? It's a bit like that.</p>
+
+<pre class='prettyprint lang-html'>
+{{value | first | second | third}}
+</pre>
+
+<p>You can pass additional arguments to formatters, by placing them in square brackets next to the formatter. The arguments can be any valid JSON:</p>
+
+<pre class='prettyprint lang-html'>
+&lt;!-- this is fine --&gt;
+{{value | formatter[1,2,3] }}
+
+&lt;!-- so is this --&gt;
+{{value | formatter["some text"] }}
+
+&lt;!-- THIS WILL BREAK - strings must be double quoted --&gt;
+{{value | formatter['some text'] }}
+
+&lt;!-- THIS WILL ALSO BREAK - variables are not valid JSON --&gt;
+{{value | formatter[someVar] }}
+
+&lt;!-- but this is perfectly valid. Why not? Go nuts. --&gt;
+{{value | formatter[{ "one" : 1, "two" : 2, "three" : 3, "array": [[[ "yo dawg..." ]]] }] }}
+</pre>
+
+<p>Formatters come in handy in all sorts of situations, particularly making numbers and dates readable. They can also be used to create complex dynamic layouts, if you're into that sort of thing. How you use them is up to you.</p>
+		
+		<div class='console-container'>
+			<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+			<div id='console' class='console' style='display: none;'>
+view.set( 'input', 0.3 );
+
+			</div>
+			<div id='console-reset'>reset</div>
+		</div>
+	</div>
+
+	<div class='main'>
+
+		<div id='output' class='output block'>
+			Please wait... page is loading
+		</div>
+		
+		<pre id='template' class='template block prettyprint lang-html'>&lt;div class=&#39;bars&#39;&gt;
+  &lt;!-- the green bar --&gt;
+  &lt;div class=&#39;bar&#39; style=&#39;width: {{input | clamp[0,1] | times[100]}}%;&#39;&gt;&lt;&#x2F;div&gt;
+
+  &lt;!-- the blue bar --&gt;
+  &lt;div class=&#39;bar&#39; style=&#39;width: {{input | clamp[0,1] | subtractFrom[1] | times[100]}}%;&#39;&gt;&lt;&#x2F;div&gt;
+
+  &lt;p&gt;{{input}} expressed as a percentage is {{input | times[100]}}%&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;</pre>
+		
+
+		<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
+  el: &#39;output&#39;,
+  template: $(&#39;#template&#39;).text(),
+  data: {
+    input: 0.7
+  },
+  formatters: {
+    times:        function ( number, factor  )  { return number * factor; },
+    subtractFrom: function ( number, minuend )  { return minuend - number; },
+    clamp:        function ( number, min, max ) { return Math.min( max, Math.max( number, min ) ); },
+    toFixed:      function ( number, decimals ) { return number.toFixed( decimals ); }
+  }
+});</div>
+	</div>
+
+	<script src="../../lib/domready.js"></script>
+	<script src="../../lib/prettify.js"></script>
+
+	<script src="../../lib/codemirror/codemirror.js"></script>
+	<script src="../../lib/codemirror/javascript.js"></script>
+
+	<!-- Dependencies -->
+	<script src='http://code.jquery.com/jquery-1.9.1.min.js'></script>
+
+	<!-- Component source -->
+	<script src='../../lib/Ractive.js'></script>
+	
+	<!--<script src='../examples.js'></script>-->
+
+	<script>
+		domready( function () {
+			var codeMirror, consolePlaceholder, consoleContainer, consoleCode, trim, code, reset, script;
+
+			
+
+			if ( !String.prototype.trim ) {
+				String.prototype.trim = function () {
+					return this.replace( /^\s*/, '' ).replace( /\s*$/, '' );
+				}
+			}
+
+			script = document.getElementById( 'script' );
+			code = script.textContent || script.innerText;
+			
+
+			prettyPrint();
+
+			reset = function () {
+				eval( code );
+				codeMirror.setValue( consoleCode );
+
+				CodeMirror.keyMap.default.Enter = function ( cm ) {
+					var code = cm.getValue();
+
+					try {
+						eval( code );
+					} catch ( err ) {
+						console.error( err );
+						throw err;
+					}
+				};
+			};
+
+			consoleContainer = document.getElementById( 'console' );
+			consoleCode = consoleContainer.innerHTML.trim();
+			consoleContainer.innerHTML = '';
+
+			consolePlaceholder = document.getElementById( 'console-placeholder' );
+			consolePlaceholder.parentNode.removeChild( consolePlaceholder );
+
+			consoleContainer.style.display = 'block';
+
+			codeMirror = new CodeMirror( consoleContainer, {
+				value: consoleCode,
+				mode: 'javascript',
+				linenumbers: true,
+				autofocus: true,
+				theme: 'ractive'
+			});
+
+			document.getElementById( 'console-reset' ).addEventListener( 'click', reset );
+			reset();
+		});
+	</script>
+
+</body>
+</html>

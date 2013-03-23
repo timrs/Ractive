@@ -2,27 +2,22 @@
 <html>
 <head>
 	<meta charset='utf-8'>
-	<title>Ractive</title>
+	<title>Ractive.js - faster, easier, better interactive web development</title>
 
-	<link rel='stylesheet' href='css/min.css'/>
-	<link href='http://fonts.googleapis.com/css?family=Poiret+One|Voltaire' rel='stylesheet' type='text/css'>
+	<link rel='stylesheet' href='min.css'/>
 </head>
 
 <body>
 	<a class='forkme' href="https://github.com/Rich-Harris/Ractive"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_left_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
 
-	<div class='nav'>
-		<a href='https://raw.github.com/Rich-Harris/Ractive/master/release/0.1.7/Ractive.js'>Download v0.1.7</a> | <a href='examples'>Examples</a> | <a href='../'>Home</a>
-	</div>
-
 	<div class='content'>
 		<div class='title'>
 			<h1>Ractive.js</h1>
-			<p>Mustache-style declarative data binding for the sceptical developer</p>
+			<p>Faster, easier, better interactive web development</p>
 		</div>
 
-		<div class='download'>
-			<p><strong>Download v0.1.7:</strong> <a href='https://raw.github.com/Rich-Harris/Ractive/master/release/0.1.7/Ractive.js'>development</a>, <a href='https://raw.github.com/Rich-Harris/Ractive/master/release/0.1.7/Ractive.min.js'>production</a> (6.8kb minified and gzipped)</p>
+		<div class='menu'>
+			<p>Home | <a href='tutorials'>Tutorials</a> | <a href='docs'>API documentation</a> | <a href='download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
 		</div>
 
 
@@ -38,7 +33,9 @@ element.innerHTML = render( template, data ); // '&lt;p&gt;Hello world!&lt;/p&gt
 
 		<p>That's great, but what happens when <code>name</code> changes? Typically, you would have a view with a render method that re-created the HTML with the new data, then either updated <code>innerHTML</code>, or did the jQuery/Zepto/Ender equivalent.</p>
 
-		<p>In other words, we just threw away a perfectly good <code>p</code> element!</p>
+		<p>In other words, we just threw away a perfectly good <code>p</code> element! Depending on the complexity of your template, that can mean a lot of work for the browser, as everything has to be garbage collected. Unless your user is in an older browser, in which case they may suffer memory leaks instead.</p>
+
+		<p>Of course, you could manually modify the DOM rather than doing the quick-at-first-but-wasteful-thereafter <code>innerHTML</code> thing. But that means a lot of work for you, the developer, instead.</p>
 
 		<p><span class='logo'>Ractive.js</span> takes a different approach. It's <strong>DOM manipulation with surgical precision</strong>.</p>
 
@@ -58,9 +55,9 @@ element.innerHTML = render( template, data ); // '&lt;p&gt;Hello world!&lt;/p&gt
 		<p>Here's a basic <span class='logo'>Ractive.js</span> setup:
 
 <pre class='prettyprint linenums lang-js'>view = new Ractive({
-	el: element,
-	template: '&lt;p&gt;Hello {{name}}!&lt;/p&gt;',
-	data: { name: world }
+  el: element,
+  template: '&lt;p&gt;Hello {{name}}!&lt;/p&gt;',
+  data: { name: world }
 });
 // renders &lt;p&gt;Hello world!&lt;/p&gt; to our container element
 
@@ -77,7 +74,7 @@ view.set( 'name', 'Jim' );
 
 		<p>A lot of the time, though, you don't need the functionality of mega-frameworks, or the extra kilobytes (and learning curve) that go with them. And if you stray from the 'happy path' of anticipated use cases, be prepared to hack your way to a solution. Some developers become sceptical of the <em>magic</em> that goes on under the hood &ndash; if you can't understand it, you can't fix it when it goes wrong.</p>
 
-		<p><a href='http://knockoutjs.com/'>Knockout.js</a> also deserves a special mention, for popularising the idea of declarative data binding, and doing so with a cracking library. <span class='logo'>Ractive.js</span> is indebted to Knockout, from where it takes much inspiration.</p>
+		<p><a href='http://knockoutjs.com/'>Knockout.js</a> also deserves a special mention, for popularising the idea of <em>declarative data binding</em> in web apps, and doing so with a cracking library. <span class='logo'>Ractive.js</span> is indebted to Knockout, from where it takes much inspiration.</p>
 
 		<p>But <a href='http://mustache.github.com/'>mustache syntax</a> is arguably much nicer to deal with, and your non-developer colleagues can easily understand it.</p>
 
@@ -112,7 +109,7 @@ view.set( 'name', 'Jim' );
 			<li>AMD support: including a <a href='https://github.com/Rich-Harris/require-ractive-plugin'>RequireJS loader plugin</a></li>
 		</ul>
 		
-		<p>Take a look at the <a href='examples'>examples</a> to see how <span class='logo'>Ractive.js</span> can make your life as a web developer easier.</p>
+		<p>Take a look at the <a href='tutorials'>tutorials</a> and <a href='examples'>examples</a> to see how <span class='logo'>Ractive.js</span> can make your life as a web developer easier.</p>
 
 		
 
