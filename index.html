@@ -1,1 +1,142 @@
-Ractive test page
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<title>Ractive</title>
+
+	<link rel='stylesheet' href='css/min.css'/>
+	<link href='http://fonts.googleapis.com/css?family=Poiret+One|Voltaire' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+	<a class='forkme' href="https://github.com/Rich-Harris/Ractive"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_left_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+
+	<div class='nav'>
+		<a href='https://raw.github.com/Rich-Harris/Ractive/master/release/0.1.7/Ractive.js'>Download v0.1.7</a> | <a href='examples'>Examples</a> | <a href='../'>Home</a>
+	</div>
+
+	<div class='content'>
+		<div class='title'>
+			<h1>Ractive.js</h1>
+			<p>Mustache-style declarative data binding for the sceptical developer</p>
+		</div>
+
+		<div class='download'>
+			<p><strong>Download v0.1.7:</strong> <a href='https://raw.github.com/Rich-Harris/Ractive/master/release/0.1.7/Ractive.js'>development</a>, <a href='https://raw.github.com/Rich-Harris/Ractive/master/release/0.1.7/Ractive.min.js'>production</a> (6.8kb minified and gzipped)</p>
+		</div>
+
+
+		<h2>It's templating Jim, but not as we know it</h2> 
+
+		<p>You've probably seen this kind of thing in JavaScript apps:</p>
+
+<pre class='prettyprint linenums lang-js'>template = '&lt;p&gt;Hello {{name}}!&lt;/p&gt;';
+data = { name: 'world' };
+
+element.innerHTML = render( template, data ); // '&lt;p&gt;Hello world!&lt;/p&gt;'
+</pre>
+
+		<p>That's great, but what happens when <code>name</code> changes? Typically, you would have a view with a render method that re-created the HTML with the new data, then either updated <code>innerHTML</code>, or did the jQuery/Zepto/Ender equivalent.</p>
+
+		<p>In other words, we just threw away a perfectly good <code>p</code> element!</p>
+
+		<p><span class='logo'>Ractive.js</span> takes a different approach. It's <strong>DOM manipulation with surgical precision</strong>.</p>
+
+
+
+		<!--<h2 class='separator'>Hang on &ndash; isn't innerHTML blazing fast?</h2>
+
+		<p>Yes, it is. At least, it is the first time you do it. But after that, each time anything changes, the browser has to discard all your DOM nodes. In the best case, that's extra work for the garbage collector, which has to remove all traces of our <code>p</code> element (he died so young! with so much potential!) before it can spawn the next one.</p>
+
+		<p>With a complex page, that can add up, particularly on less capable devices.</p>
+
+		<p>(Oh, and if you were binding event listeners to the elements you so casually, cruelly destroyed, standy by for memory leaks. That's the worst case.)</p>-->
+
+
+
+		<h2 class='separator'>Every node is sacred</h2>
+		<p>Here's a basic <span class='logo'>Ractive.js</span> setup:
+
+<pre class='prettyprint linenums lang-js'>view = new Ractive({
+	el: element,
+	template: '&lt;p&gt;Hello {{name}}!&lt;/p&gt;',
+	data: { name: world }
+});
+// renders &lt;p&gt;Hello world!&lt;/p&gt; to our container element
+
+view.set( 'name', 'Jim' );
+// changes 'world' to 'Jim', leaves everything else untouched
+</pre>
+
+		<p>When <span class='logo'>Ractive.js</span> renders the template, it stores references to the bits that contain dynamic data &ndash; splitting up text nodes if necessary &ndash; and updating them when the data changes. It's quicker than <code>el.innerHTML</code> (or <code>$(el).html()</code>), and gives you a much nicer API to deal with.</p>
+
+
+		<h2 class='separator'>Yeah, yeah. Heard of Ember? Knockout?</h2>
+
+		<p>You're right &ndash; we've already got perfectly good data binding options. We've got frameworks like <a href='http://emberjs.com/'>Ember.js</a> and <a href='http://angularjs.org/'>Angular.js</a>, made by brilliant developers and used in successful apps. I'd certainly recommend trying them.</p>
+
+		<p>A lot of the time, though, you don't need the functionality of mega-frameworks, or the extra kilobytes (and learning curve) that go with them. And if you stray from the 'happy path' of anticipated use cases, be prepared to hack your way to a solution. Some developers become sceptical of the <em>magic</em> that goes on under the hood &ndash; if you can't understand it, you can't fix it when it goes wrong.</p>
+
+		<p><a href='http://knockoutjs.com/'>Knockout.js</a> also deserves a special mention, for popularising the idea of declarative data binding, and doing so with a cracking library. <span class='logo'>Ractive.js</span> is indebted to Knockout, from where it takes much inspiration.</p>
+
+		<p>But <a href='http://mustache.github.com/'>mustache syntax</a> is arguably much nicer to deal with, and your non-developer colleagues can easily understand it.</p>
+
+		<p><span class='logo'>Ractive.js</span> aims to combine <strong>beautiful syntax</strong> with a <strong>simple API</strong>, <strong>miniscule footprint</strong>, and <strong>best-in-class performance</strong>.</p>
+
+
+
+
+		
+
+		<h2 class='separator'>Neato features</h2>
+
+		<p><span class='logo'>Ractive.js</span> complies with the <a href='https://github.com/mustache/spec'>mustache spec</a> as closely as possible. If you know mustache, you're good to go. (And if you don't, you can learn it in under 5 minutes.) That means:</p>
+
+		<ul>
+			<li>Nested properties of arbitrary depth: <code>Hi there, {{user.info.name.first}}</code></li>
+			<li>Update entire chunks of HTML with triples: <code>&lt;div&gt;{{{contents}}}&lt;/div&gt;</code></li>
+			<li>Conditionals: <code>{{#gameover}}&lt;p&gt;Game over man, game over!&lt;/p&gt;{{/gameover}}</code></li>
+			<li>Lists: <code>&lt;ul&gt;{{#users}}&lt;li&gt;{{name}} - {{company}}&lt;/li&gt;{{/users}}&lt;/ul&gt;</code></li>
+			<li>Custom delimiters, if you like to kick it <code>&lt;%= old_school %&gt;</code></li>
+			<li>Partials: <code>{{#basket}}&lt;div&gt;{{>item}}&lt;/div&gt;{{/basket}}</code></li>
+			<li>Control over attributes: <code>&lt;div style='color: {{prefs.color}};'&gt;&lt;/div&gt;</code></li>
+		</ul>
+
+		<p>There's more!</p>
+
+		<ul>
+			<li>Precompilation: boost performance. Works on server or client.</li>
+			<li>SVG support: create data-bound graphics</li>
+			<li>Two-way data binding: respond to user input</li>
+			<li>Extensibility: Use <code>Ractive.extend</code> to add your own logic</li>
+			<li>AMD support: including a <a href='https://github.com/Rich-Harris/require-ractive-plugin'>RequireJS loader plugin</a></li>
+		</ul>
+		
+		<p>Take a look at the <a href='examples'>examples</a> to see how <span class='logo'>Ractive.js</span> can make your life as a web developer easier.</p>
+
+		
+
+		
+
+		<h2 class='separator'>Caveats and feedback</h2>
+		<p>This is a personal project in the early stages of development, albeit one I've used regularly in production code in my day job. YMMV! But if you end up using the library I'd love to hear from you &ndash; I'm <a href='http://twitter.com/rich_harris'>@rich_harris</a>.</p>
+
+		<p><a href='https://github.com/Rich-Harris/Ractive/issues'>Bug reports and issues</a> are very welcome, as are pull requests. If you run into problems, I'll do my best to help.</p>
+
+
+		
+
+		<h2 class='separator'>License</h2>
+		Released under the MIT license.
+
+	</div>
+
+	<script src="lib/domready.js"></script>
+	<script src="lib/prettify.js"></script>
+
+	<script>
+		domready( prettyPrint );
+	</script>
+	
+</body>
+</html>
