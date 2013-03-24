@@ -38,13 +38,17 @@ element.innerHTML = render( template, data ); // '&lt;p&gt;Hello world!&lt;/p&gt
 
 		<p>That's great, but what happens when <code>name</code> changes? Typically, you would have a view with a render method that re-created the HTML with the new data, then either updated <code>innerHTML</code>, or did the jQuery/Zepto/Ender equivalent.</p>
 
-		<p>In other words, we just threw away a perfectly good <code>p</code> element! Depending on the complexity of your template, that can mean a lot of work for the browser, as everything has to be garbage collected. Unless your user is in an older browser, in which case they may suffer memory leaks instead.</p>
+		<p>In other words, we just threw away a perfectly good <code>p</code> element! Depending on the complexity of your template, that can mean a lot of work for the browser, as that element now has to be <a href='https://developer.mozilla.org/en-US/docs/JavaScript/Memory_Management'>garbage collected</a>. Unless your user is in an older browser, in which case they may suffer memory leaks instead.</p>
 
-		<p>Of course, you could manually modify the DOM rather than doing the quick-at-first-but-wasteful-thereafter <code>innerHTML</code> thing. But that means a lot of work for you, the developer, instead.</p>
+		<p>Of course, rather than doing the quick-at-first-but-wasteful-thereafter <code>innerHTML</code> thing, you might prefer manual DOM manipulation:</p>
 
-		<p><span class='logo'>Ractive.js</span> takes a different approach. It's <strong>easy DOM manipulation with surgical precision</strong>.</p>
+		<pre class='prettyprint lang-html'>&lt;p&gt;Hello &lt;span id='name'&gt;&lt;/span&gt;!&lt;/p&gt;</pre>
 
+		<pre class='prettyprint lang-js'>$('#name').set( currentName );</pre>
 
+		<p>But that's no solution. You've added needless complexity to your DOM structure (bad for performance) and made your template more verbose and harder to reason about. And worst of all, you've swapped extra work for the browser with extra work for yourself.</p>
+
+		
 
 		<!--<h2 class='separator'>Hang on &ndash; isn't innerHTML blazing fast?</h2>
 
@@ -56,8 +60,8 @@ element.innerHTML = render( template, data ); // '&lt;p&gt;Hello world!&lt;/p&gt
 
 
 
-		<h2 class='separator'>Every node is sacred</h2>
-		<p>Here's a basic <span class='logo'>Ractive.js</span> setup:
+		<h2 class='separator'>Enter Ractive.js &ndash; surgical DOM manipulation</h2>
+		<p>There is a better way. Here's a basic <span class='logo'>Ractive.js</span> setup:
 
 <pre class='prettyprint linenums lang-js'>view = new Ractive({
   el: element,
@@ -70,12 +74,12 @@ view.set( 'name', 'Jim' );
 // changes 'world' to 'Jim', leaves everything else untouched
 </pre>
 
-		<p>When <span class='logo'>Ractive.js</span> renders the template, it stores references to the bits that contain dynamic data &ndash; splitting up text nodes if necessary &ndash; and updating them when the data changes. It's quicker than <code>el.innerHTML</code> (or <code>$(el).html()</code>), and gives you a much nicer API to deal with.</p>
+		<p>When <span class='logo'>Ractive.js</span> renders the template, it stores references to the bits that contain dynamic data &ndash; splitting up text nodes if necessary &ndash; and updates them when the data changes. It's quicker than <code>el.innerHTML</code> (or <code>$(el).html()</code>), and doesn't suffer from the many drawbacks of manual DOM manipulation.</p>
 
 
 		<h2 class='separator'>Yeah, yeah. Heard of Ember? Knockout?</h2>
 
-		<p>You're right &ndash; we've already got perfectly good data binding options. We've got frameworks like <a href='http://emberjs.com/'>Ember.js</a> and <a href='http://angularjs.org/'>Angular.js</a>, made by brilliant developers and used in successful apps. I'd certainly recommend trying them.</p>
+		<p>You're right &ndash; we've already got perfectly good tools for keeping views in sync with their models. We've got frameworks like <a href='http://emberjs.com/'>Ember.js</a> and <a href='http://angularjs.org/'>Angular.js</a>, made by brilliant developers and used in successful apps. I'd certainly recommend trying them.</p>
 
 		<p>A lot of the time, though, you don't need the functionality of mega-frameworks, or the extra kilobytes (and learning curve) that go with them. And if you stray from the 'happy path' of anticipated use cases, be prepared to hack your way to a solution. Some developers become sceptical of the <em>magic</em> that goes on under the hood &ndash; if you can't understand it, you can't fix it when it goes wrong.</p>
 
@@ -114,7 +118,7 @@ view.set( 'name', 'Jim' );
 			<li>AMD support: including a <a href='https://github.com/Rich-Harris/require-ractive-plugin'>RequireJS loader plugin</a></li>
 		</ul>
 		
-		<p>Take a look at the <a href='tutorials'>tutorials</a> and <a href='examples'>examples</a> to see how <span class='logo'>Ractive.js</span> can make your life as a web developer easier.</p>
+		<p>Take a look at the <a href='tutorials'>tutorials</a> to see how <span class='logo'>Ractive.js</span> can make your life as a web developer easier.</p>
 
 		
 
