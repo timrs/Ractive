@@ -2,9 +2,10 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Two-way data binding | Ractive examples</title>
+	<title>Two-way data binding | Tutorials | Ractive.js</title>
 
 	<style type='text/css'>
 	#data-input, #data-output {
@@ -31,38 +32,42 @@ input {
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>Two-way data binding</h2>
+		<div class='tutorial-header'>
+			<h2>Two-way data binding</h2>
 
-		<a class='prev' href='../repeated-sections-part-two'><span>&#9664;</span> prev</a>
-		<a class='next' href='../animation'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../repeated-sections-part-two'><span>&#9664;</span> prev</a>
+			<a class='next' href='../animation'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
-
 		
-		<p><strong>Input</strong> and <strong>textarea</strong> elements can update Ractive data without you having to bother adding event listeners. Just add a <em>data-bind</em> attribute corresponding to the data you want to keep updated.</p>
+		<div class='notes'>
+			
+
+			
+			<p><strong>Input</strong> and <strong>textarea</strong> elements can update Ractive data without you having to bother adding event listeners. Just add a <em>data-bind</em> attribute corresponding to the data you want to keep updated.</p>
 
 <p>By default, the data will be updated every time the content of the input changes, because under the hood we're binding to both <em>change</em> and <em>keyup</em> events. Sometimes that's undesirable and you only want to react to <em>change</em> events (i.e. when the user hits Enter or tabs out of the input) &ndash; if that applies, pass in <em>lazy: true</em> as an initialization option.</p>
-		
-	</div>
-
-	<div class='main'>
-
-		<div id='output' class='output block'>
-			Please wait... page is loading
+			
 		</div>
-		
-		<pre id='template' class='template block prettyprint lang-html'>&lt;div id=&#39;data-input&#39;&gt;
+
+		<div class='main'>
+
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>&lt;div id=&#39;data-input&#39;&gt;
   &lt;label&gt;&lt;input value=&quot;{{user.firstname}}&quot; placeholder=&quot;first name&quot;&gt;your first name&lt;&#x2F;label&gt;
   &lt;label&gt;&lt;input value=&quot;{{user.lastname}}&quot; placeholder=&quot;last name&quot;&gt;your last name&lt;&#x2F;label&gt;
   &lt;label&gt;&lt;input value=&quot;{{user.age}}&quot; type=&quot;range&quot;&gt;your age&lt;&#x2F;label&gt;
@@ -71,9 +76,9 @@ input {
 &lt;div id=&#39;data-output&#39;&gt;
   &lt;p&gt;
 &lt;&#x2F;div&gt;</pre>
-		
+			
 
-		<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
+			<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
   el: &#39;output&#39;,
   template: $(&#39;#template&#39;).text(),
   data: {
@@ -89,6 +94,7 @@ input {
     }
   }
 });</div>
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>

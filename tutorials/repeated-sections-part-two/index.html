@@ -2,9 +2,10 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Repeated sections (part two) | Ractive examples</title>
+	<title>Repeated sections (part two) | Tutorials | Ractive.js</title>
 
 	<style type='text/css'>
 	table {
@@ -63,26 +64,30 @@ tr:last-child td {
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>Repeated sections (part two)</h2>
+		<div class='tutorial-header'>
+			<h2>Repeated sections (part two)</h2>
 
-		<a class='prev' href='../repeated-sections-part-one'><span>&#9664;</span> prev</a>
-		<a class='next' href='../two-way-data-binding'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../repeated-sections-part-one'><span>&#9664;</span> prev</a>
+			<a class='next' href='../two-way-data-binding'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
-
 		
-		<p>In <a href='../repeated-sections-part-one'>part one</a>, we learnt the basics of how to create repeated sections with arrays, and that using the normal array mutator methods will keep your view up to date. In the second part, we learn some extra tricks, and build a sortable table of superheroes using an array section and a sprinkling of jQuery.</p>
+		<div class='notes'>
+			
+
+			
+			<p>In <a href='../repeated-sections-part-one'>part one</a>, we learnt the basics of how to create repeated sections with arrays, and that using the normal array mutator methods will keep your view up to date. In the second part, we learn some extra tricks, and build a sortable table of superheroes using an array section and a sprinkling of jQuery.</p>
 
 
 <h3>Keeping in sync</h3>
@@ -101,11 +106,11 @@ tr:last-child td {
 <p>In the example below, we are using the view's <code>set</code> event to ensure that whenever the data changes, we maintain the sort order. (<a href='../events'>Learn about events here.</a>).</p>
 
 <p>Try adding Storm to the list of X-Men below, by running this code &ndash; by pushing to the array, we trigger a <code>set</code>, which triggers a <code>sort</code>, which triggers another <code>set</code> (but only one, because infinite loops are bad!).</p>
-		
-		<div class='console-container'>
-			<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
-			<div id='console' class='console' style='display: none;'>
-x_men.push({
+			
+			<div class='console-container'>
+				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+				<div id='console' class='console' style='display: none;'>
+	x_men.push({
   name: 'Storm',
   realname: 'Monroe, Ororo',
   power: 'Controlling the weather',
@@ -114,18 +119,18 @@ x_men.push({
 
 // NB we could also do view.get('superheroes').push({ ... })
 
+				</div>
+				<div id='console-reset'>reset</div>
 			</div>
-			<div id='console-reset'>reset</div>
 		</div>
-	</div>
 
-	<div class='main'>
+		<div class='main'>
 
-		<div id='output' class='output block'>
-			Please wait... page is loading
-		</div>
-		
-		<pre id='template' class='template block prettyprint lang-html'>&lt;p&gt;Click headers to sort:&lt;&#x2F;p&gt;
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>&lt;p&gt;Click headers to sort:&lt;&#x2F;p&gt;
 
 &lt;table&gt;
   &lt;tr&gt;
@@ -144,9 +149,9 @@ x_men.push({
   &lt;&#x2F;tr&gt;
   {{&#x2F;superheroes}}
 &lt;&#x2F;table&gt;</pre>
-		
+			
 
-		<pre id='script' class='script block prettyprint lang-js'>var x_men, view, sort, sortCol;
+			<pre id='script' class='script block prettyprint lang-js'>var x_men, view, sort, sortCol;
 
 &#x2F;&#x2F; define our superheroes
 x_men = [
@@ -186,6 +191,7 @@ view.on( &#39;set:superheroes&#39;, sort ); &#x2F;&#x2F; we could also just do v
 &#x2F;&#x2F; initially, sort by name
 sortCol = &#39;name&#39;;
 sort();</div>
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>

@@ -2,34 +2,39 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Nested properties | Ractive examples</title>
+	<title>Nested properties | Tutorials | Ractive.js</title>
 
 </head>
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>Nested properties</h2>
+		<div class='tutorial-header'>
+			<h2>Nested properties</h2>
 
-		<a class='prev' href='../formatters-part-two'><span>&#9664;</span> prev</a>
-		<a class='next' href='../conditional-sections'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../formatters-part-two'><span>&#9664;</span> prev</a>
+			<a class='next' href='../conditional-sections'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
-
 		
-		<p>Properties can be nested to arbitrary levels, using the familiar <em>dot notation</em>:</p>
+		<div class='notes'>
+			
+
+			
+			<p>Properties can be nested to arbitrary levels, using the familiar <em>dot notation</em>:</p>
 
 <pre class='prettyprint lang-html'>
 &lt;h2&gt;Hello, {{user.info.firstname}} {{user.info.lastname}}!&lt;/h2&gt;
@@ -90,16 +95,16 @@ view.set('user', { messages: { unread: 3 } });
 <p>(This may seem more verbose than just using dot notation, and in this example it is. Use whichever you feel more comfortable with in a given situation.)</p>
 
 <p>Within a section, you can still access properties at a higher level within the <em>context stack</em>, as demonstrated below.</p>
-		
-	</div>
-
-	<div class='main'>
-
-		<div id='output' class='output block'>
-			Please wait... page is loading
+			
 		</div>
-		
-		<pre id='template' class='template block prettyprint lang-html'>&lt;p&gt;Nested properties can only be accessed in the correct &lt;em&gt;context&lt;&#x2F;em&gt; &amp;ndash; here, the nested property can&#39;t be evaluated, so is blank:&lt;&#x2F;p&gt;
+
+		<div class='main'>
+
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>&lt;p&gt;Nested properties can only be accessed in the correct &lt;em&gt;context&lt;&#x2F;em&gt; &amp;ndash; here, the nested property can&#39;t be evaluated, so is blank:&lt;&#x2F;p&gt;
 &lt;ul&gt;
   &lt;li&gt;&lt;strong&gt;Top-level property&lt;&#x2F;strong&gt;: {{top_level_property}}&lt;&#x2F;li&gt;
   &lt;li&gt;&lt;strong&gt;Nested property&lt;&#x2F;strong&gt;: {{nested_property}}&lt;&#x2F;li&gt;
@@ -116,9 +121,9 @@ view.set('user', { messages: { unread: 3 } });
     {{&#x2F;while.you.recurse.while.you.recurse}}
   {{&#x2F;so.you.can.recurse.while.you.recurse.while.you.recurse.while.you.recurse}}
 {{&#x2F;yo.dawg.i.heard.you.like.recursion.so.i.put.some.properties.in.your.properties}}</pre>
-		
+			
 
-		<pre id='script' class='script block prettyprint lang-js'>var recurse, view;
+			<pre id='script' class='script block prettyprint lang-js'>var recurse, view;
 
 recurse = { while: { you: {} } };
 recurse.while.you.recurse = recurse;
@@ -133,6 +138,7 @@ view = new Ractive({
     top_level_property: &#39;This is a top-level property&#39;
   }
 });</div>
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>

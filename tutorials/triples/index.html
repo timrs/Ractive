@@ -2,9 +2,10 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Triples | Ractive examples</title>
+	<title>Triples | Tutorials | Ractive.js</title>
 
 	<style type='text/css'>
 	#output img {
@@ -16,59 +17,64 @@
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>Triples</h2>
+		<div class='tutorial-header'>
+			<h2>Triples</h2>
 
-		<a class='prev' href='../attributes'><span>&#9664;</span> prev</a>
-		<a class='next' href='../formatters-part-one'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../attributes'><span>&#9664;</span> prev</a>
+			<a class='next' href='../formatters-part-one'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
-
 		
-		<p>Anything in a <code>{{{triple}}}</code>, as opposed to a regular <code>{{mustache}}</code>, gets inserted into the document as HTML.</p>
+		<div class='notes'>
+			
+
+			
+			<p>Anything in a <code>{{{triple}}}</code>, as opposed to a regular <code>{{mustache}}</code>, gets inserted into the document as HTML.</p>
 
 <p>(This is a powerful tool, but with great power comes great responsibility &ndash; any time you change the HTML, <span class='logo'>Ractive.js</span> must remove the existing DOM nodes, rather than just updating text. So if you can do it with a regular <code>{{mustache}}</code>, you should do it that way instead.)</p>
 
 <p>Try running this code:</p>
-		
-		<div class='console-container'>
-			<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
-			<div id='console' class='console' style='display: none;'>
-view.set('content', '<a href="http://bit.ly/QOyWC1">' +
-'<img src="image.gif"/></a>');
+			
+			<div class='console-container'>
+				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+				<div id='console' class='console' style='display: none;'>
+	view.set('content', '<a href="http://bit.ly/QOyWC1">' +
+'<img src="../../assets/image.gif"/></a>');
 
+				</div>
+				<div id='console-reset'>reset</div>
 			</div>
-			<div id='console-reset'>reset</div>
 		</div>
-	</div>
 
-	<div class='main'>
+		<div class='main'>
 
-		<div id='output' class='output block'>
-			Please wait... page is loading
-		</div>
-		
-		<pre id='template' class='template block prettyprint lang-html'>&lt;p&gt;This is a normal mustache: {{content}}&lt;&#x2F;p&gt;
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>&lt;p&gt;This is a normal mustache: {{content}}&lt;&#x2F;p&gt;
 &lt;p&gt;And this is a triple mustache: {{{content}}}&lt;&#x2F;p&gt;</pre>
-		
+			
 
-		<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
+			<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
   el: &#39;output&#39;,
   template: $(&#39;#template&#39;).text(),
   data: {
     content: &#39;&lt;strong&gt;Spot the difference?&lt;&#x2F;strong&gt;&#39;
   }
 });</div>
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>

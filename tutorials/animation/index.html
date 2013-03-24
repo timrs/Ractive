@@ -2,9 +2,10 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Animation | Ractive examples</title>
+	<title>Animation | Tutorials | Ractive.js</title>
 
 	<style type='text/css'>
 	.chart {
@@ -47,46 +48,50 @@
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>Animation</h2>
+		<div class='tutorial-header'>
+			<h2>Animation</h2>
 
-		<a class='prev' href='../two-way-data-binding'><span>&#9664;</span> prev</a>
-		<a class='next' href='../svg'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../two-way-data-binding'><span>&#9664;</span> prev</a>
+			<a class='next' href='../svg'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
+		
+		<div class='notes'>
+			
 
-		
-		<p>You can animate any numerical value as simply as this: <code>view.animate( keypath, value );</code>
-		
-		<div class='console-container'>
-			<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
-			<div id='console' class='console' style='display: none;'>
-bars.forEach( function ( datum, i ) {
+			
+			<p>You can animate any numerical value as simply as this: <code>view.animate( keypath, value );</code>
+			
+			<div class='console-container'>
+				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+				<div id='console' class='console' style='display: none;'>
+	bars.forEach( function ( datum, i ) {
 	view.animate( 'bars[' + i + ']', Math.random() * 100, { easing: 'easeTo', duration: 600 } );
 });
 
+				</div>
+				<div id='console-reset'>reset</div>
 			</div>
-			<div id='console-reset'>reset</div>
 		</div>
-	</div>
 
-	<div class='main'>
+		<div class='main'>
 
-		<div id='output' class='output block'>
-			Please wait... page is loading
-		</div>
-		
-		<pre id='template' class='template block prettyprint lang-html'>&lt;div class=&#39;chart&#39;&gt;
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>&lt;div class=&#39;chart&#39;&gt;
   {{#bars}}
   &lt;div class=&#39;bar-outer&#39; style=&#39;width: {{bars.length | divide}}%;&#39;&gt;
     &lt;div class=&#39;bar-inner&#39; style=&#39;height: {{.}}%; background-color: {{. | color}};&#39;&gt;
@@ -95,9 +100,9 @@ bars.forEach( function ( datum, i ) {
   &lt;&#x2F;div&gt;
   {{&#x2F;bars}}
 &lt;&#x2F;div&gt;</pre>
-		
+			
 
-		<pre id='script' class='script block prettyprint lang-js'>var bars, view;
+			<pre id='script' class='script block prettyprint lang-js'>var bars, view;
 
 &#x2F;&#x2F; define our data
 bars = [ 50, 50, 50, 50, 50, 50, 50 ];
@@ -118,6 +123,7 @@ view = new Ractive({
     toFixed: function ( n, d ) { return n.toFixed( d || 1 ); }
   }
 });</div>
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>

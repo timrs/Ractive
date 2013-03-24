@@ -2,34 +2,39 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Conditional sections | Ractive examples</title>
+	<title>Conditional sections | Tutorials | Ractive.js</title>
 
 </head>
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>Conditional sections</h2>
+		<div class='tutorial-header'>
+			<h2>Conditional sections</h2>
 
-		<a class='prev' href='../nested-properties'><span>&#9664;</span> prev</a>
-		<a class='next' href='../repeated-sections-part-one'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../nested-properties'><span>&#9664;</span> prev</a>
+			<a class='next' href='../repeated-sections-part-one'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
-
 		
-		<p>A <strong>section</strong> looks like this:</p>
+		<div class='notes'>
+			
+
+			
+			<p>A <strong>section</strong> looks like this:</p>
 
 <pre class='prettyprint lang-html'>{{#value}}&lt;p&gt;section content goes here, and can include anything&lt;/p&gt;{{/value}}</pre>
 
@@ -38,35 +43,36 @@
 <p>Sometimes, that's the opposite of what you want &ndash; in these cases, use an <em>inverted</em> section:</p>
 
 <pre class='prettyprint lang-html'>{{^user.isSignedIn}}&lt;a href='signin.html'&gt;Click here to sign in&lt;/a&gt;{{/user.isSignedIn}}</pre>
-		
-		<div class='console-container'>
-			<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
-			<div id='console' class='console' style='display: none;'>
-// try replacing false with eg 0, 1, -1, '', 'string', [], ['stuff']...
+			
+			<div class='console-container'>
+				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+				<div id='console' class='console' style='display: none;'>
+	// try replacing false with eg 0, 1, -1, '', 'string', [], ['stuff']...
 view.set('condition', false);
 
+				</div>
+				<div id='console-reset'>reset</div>
 			</div>
-			<div id='console-reset'>reset</div>
 		</div>
-	</div>
 
-	<div class='main'>
+		<div class='main'>
 
-		<div id='output' class='output block'>
-			Please wait... page is loading
-		</div>
-		
-		<pre id='template' class='template block prettyprint lang-html'>{{#condition}}The condition is &lt;strong&gt;truthy&lt;&#x2F;strong&gt;{{&#x2F;condition}}
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>{{#condition}}The condition is &lt;strong&gt;truthy&lt;&#x2F;strong&gt;{{&#x2F;condition}}
 {{^condition}}The condition is &lt;strong&gt;falsy&lt;&#x2F;strong&gt;{{&#x2F;condition}}</pre>
-		
+			
 
-		<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
+			<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
   el: &#39;output&#39;,
   template: $(&#39;#template&#39;).text(),
   data: {
     condition: true
   }
 });</div>
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>

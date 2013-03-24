@@ -2,34 +2,39 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Repeated sections (part one) | Ractive examples</title>
+	<title>Repeated sections (part one) | Tutorials | Ractive.js</title>
 
 </head>
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>Repeated sections (part one)</h2>
+		<div class='tutorial-header'>
+			<h2>Repeated sections (part one)</h2>
 
-		<a class='prev' href='../conditional-sections'><span>&#9664;</span> prev</a>
-		<a class='next' href='../repeated-sections-part-two'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../conditional-sections'><span>&#9664;</span> prev</a>
+			<a class='next' href='../repeated-sections-part-two'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
-
 		
-		<p>If the section key is an <strong>array</strong>, the section will be repeated once for each item in the array, with said item as <em>context</em>. This is useful for constructing lists and tables:</p>
+		<div class='notes'>
+			
+
+			
+			<p>If the section key is an <strong>array</strong>, the section will be repeated once for each item in the array, with said item as <em>context</em>. This is useful for constructing lists and tables:</p>
 
 <p><em>Context</em> means that you can refer to properties of each <em>array item</em> within the section. Lets say <code>users</code> is equal to <code>[{name:'Alice'}, {name:'Bob'}, {name:'Charles'}]</code>:</p>
 
@@ -82,11 +87,12 @@ users.push({ name:'Dave' });
 
 <h3>Part two</h3>
 <p>In <a href='../repeated-sections-part-two'>part two</a>, we use repeated sections to generate a dynamic, self-updating data view.</p>
-		
-	</div>
+			
+		</div>
 
-	<div class='main'>
+		<div class='main'>
 
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>

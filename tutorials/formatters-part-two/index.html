@@ -2,9 +2,10 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Formatters (advanced) | Ractive examples</title>
+	<title>Formatters (advanced) | Tutorials | Ractive.js</title>
 
 	<style type='text/css'>
 	.bars {
@@ -21,6 +22,8 @@
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	margin: 0 0 0.5em 0;
+	border: 1px solid #fafafa;
+	border-radius: 0.3em;
 }
 
 .bar:first-child {
@@ -37,26 +40,30 @@
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>Formatters (advanced)</h2>
+		<div class='tutorial-header'>
+			<h2>Formatters (advanced)</h2>
 
-		<a class='prev' href='../formatters-part-one'><span>&#9664;</span> prev</a>
-		<a class='next' href='../nested-properties'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../formatters-part-one'><span>&#9664;</span> prev</a>
+			<a class='next' href='../nested-properties'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
-
 		
-		<p>Formatters can be chained together &ndash; the output of one formatter provides the input to the next one. Seen the movie <em>The Human Centipede</em>? It's a bit like that.</p>
+		<div class='notes'>
+			
+
+			
+			<p>Formatters can be chained together &ndash; the output of one formatter provides the input to the next one. Seen the movie <em>The Human Centipede</em>? It's a bit like that.</p>
 
 <pre class='prettyprint lang-html'>
 {{value | first | second | third}}
@@ -82,24 +89,25 @@
 </pre>
 
 <p>Formatters come in handy in all sorts of situations, particularly making numbers and dates readable. They can also be used to create complex dynamic layouts, if you're into that sort of thing. How you use them is up to you.</p>
-		
-		<div class='console-container'>
-			<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
-			<div id='console' class='console' style='display: none;'>
+			
+			<div class='console-container'>
+				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+				<div id='console' class='console' style='display: none;'>
+	// set a value between zero and one
 view.set( 'input', 0.3 );
 
+				</div>
+				<div id='console-reset'>reset</div>
 			</div>
-			<div id='console-reset'>reset</div>
 		</div>
-	</div>
 
-	<div class='main'>
+		<div class='main'>
 
-		<div id='output' class='output block'>
-			Please wait... page is loading
-		</div>
-		
-		<pre id='template' class='template block prettyprint lang-html'>&lt;div class=&#39;bars&#39;&gt;
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>&lt;div class=&#39;bars&#39;&gt;
   &lt;!-- the green bar --&gt;
   &lt;div class=&#39;bar&#39; style=&#39;width: {{input | clamp[0,1] | times[100]}}%;&#39;&gt;&lt;&#x2F;div&gt;
 
@@ -108,9 +116,9 @@ view.set( 'input', 0.3 );
 
   &lt;p&gt;{{input}} expressed as a percentage is {{input | times[100]}}%&lt;&#x2F;p&gt;
 &lt;&#x2F;div&gt;</pre>
-		
+			
 
-		<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
+			<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
   el: &#39;output&#39;,
   template: $(&#39;#template&#39;).text(),
   data: {
@@ -123,6 +131,7 @@ view.set( 'input', 0.3 );
     toFixed:      function ( number, decimals ) { return number.toFixed( decimals ); }
   }
 });</div>
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>

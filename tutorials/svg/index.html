@@ -2,9 +2,10 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>SVG graphics | Ractive examples</title>
+	<title>SVG graphics | Tutorials | Ractive.js</title>
 
 	<style type='text/css'>
 	svg {
@@ -46,44 +47,48 @@
 
 
 <body>
-	<div class='small-menu'>
-		<p><a href='../../index.html'>Home</a> | <a href='../../tutorials'>Tutorials</a> | <a href='../../docs'>API documentation</a> | <a href='../../download'>Download</a> | <a href='https://github.com/rich-harris/Ractive'>GitHub</a></p>
-	</div>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
 
-	
+	<div class='tutorial'>
 
-	<div class='tutorial-header'>
-		<h2>SVG graphics</h2>
+		<div class='tutorial-header'>
+			<h2>SVG graphics</h2>
 
-		<a class='prev' href='../animation'><span>&#9664;</span> prev</a>
-		<a class='next' href='../'>next <span>&#9654;</span></a>
-	</div>
+			<a class='prev' href='../animation'><span>&#9664;</span> prev</a>
+			<a class='next' href='../'>next <span>&#9654;</span></a>
+		</div>
 
-	
-	
-	<div class='notes'>
 		
-
 		
-		<p><span class='logo'>Ractive.js</span> supports SVG natively. This opens up some interesting possiblities:</p>
-		
-		<div class='console-container'>
-			<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
-			<div id='console' class='console' style='display: none;'>
-clock.start();
+		<div class='notes'>
+			
 
+			
+			<p><span class='logo'>Ractive.js</span> supports SVG natively. This opens up some interesting possiblities:</p>
+			
+			<div class='console-container'>
+				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+				<div id='console' class='console' style='display: none;'>
+	clock.start();
+
+				</div>
+				<div id='console-reset'>reset</div>
 			</div>
-			<div id='console-reset'>reset</div>
 		</div>
-	</div>
 
-	<div class='main'>
+		<div class='main'>
 
-		<div id='output' class='output block'>
-			Please wait... page is loading
-		</div>
-		
-		<pre id='template' class='template block prettyprint lang-html'>&lt;svg xmlns=&#39;http:&#x2F;&#x2F;www.w3.org&#x2F;2000&#x2F;svg&#39; viewBox=&#39;0 0 100 100&#39;&gt;
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>&lt;svg xmlns=&#39;http:&#x2F;&#x2F;www.w3.org&#x2F;2000&#x2F;svg&#39; viewBox=&#39;0 0 100 100&#39;&gt;
 	
 	&lt;g class=&#39;clock&#39; transform=&#39;translate(50,50)&#39;&gt;
 		&lt;circle class=&#39;base&#39; r=&#39;48&#39;&gt;&lt;&#x2F;circle&gt;
@@ -108,9 +113,9 @@ clock.start();
 	&lt;&#x2F;g&gt;
 
 &lt;&#x2F;svg&gt;</pre>
-		
+			
 
-		<pre id='script' class='script block prettyprint lang-js'>var Clock, clock;
+			<pre id='script' class='script block prettyprint lang-js'>var Clock, clock;
 
 Clock = Ractive.extend({
 	template: $(&#39;#template&#39;).text(),
@@ -141,6 +146,7 @@ Clock = Ractive.extend({
 });
 
 clock = new Clock({ el: &#39;output&#39; });</div>
+		</div>
 	</div>
 
 	<script src="../../lib/domready.js"></script>
