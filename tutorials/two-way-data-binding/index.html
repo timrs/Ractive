@@ -11,21 +11,77 @@
 	#data-input, #data-output {
 	width: 50%;
 	float: left;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+#data-input {
+	padding: 0 1em 0 0;
+	border-right: 1px solid #eee;
+}
+
+#data-output {
+	padding: 0 0 0 1em;
+}
+
+label {
+	display: block;
+	margin: 0 0 0.5em 0;
 }
 
 input {
+	width: 50%;
 	font-size: 1em;
 	padding: 0.2em;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
-	width: 10em;
-	margin: 0 1em 0.5em 0;
+	font-family: 'Baskerville', 'Book Antiqua', 'Georgia';
+	margin: 0 1em 0 0;
 }
 
 .range-input-supported input[type="range"] {
 	position: relative;
 	top: 0.5em;
+}
+
+.color-input-supported input[type="color"] {
+	position: relative;
+	top: 0.5em;
+}
+
+select {
+	font-size: 1em;
+	padding: 0.2em;
+	display: block;
+	width: 100%;
+	margin: 0 0 1em 0;
+}
+
+
+
+.icon {
+	display: inline-block;
+	padding: 0.5em 1.5em;
+	text-align: center;
+	border-radius: 0.2em;
+	border: 1px solid #444;
+	margin: 0 0 1em 0;
+}
+
+.icon img {
+	display: inline-block;
+}
+
+.icon span {
+	display: block;
+	height: 2em;
+}
+
+.attribution {
+	font-size: 0.8em;
+	color: #888;
 }
 	</style>
 </head>
@@ -55,10 +111,45 @@ input {
 			
 
 			
-			<p><strong>Input</strong> and <strong>textarea</strong> elements can update Ractive data without you having to bother adding event listeners. Just add a <em>data-bind</em> attribute corresponding to the data you want to keep updated.</p>
+			<p><strong>Input</strong>, <strong>textarea</strong> and <strong>select</strong> elements can update Ractive data automatically:</p>
 
-<p>By default, the data will be updated every time the content of the input changes, because under the hood we're binding to both <em>change</em> and <em>keyup</em> events. Sometimes that's undesirable and you only want to react to <em>change</em> events (i.e. when the user hits Enter or tabs out of the input) &ndash; if that applies, pass in <em>lazy: true</em> as an initialization option.</p>
+<pre class='prettyprint lang-html'>
+&lt;label&gt;Enter your name: &lt;input value='{{name}}'&gt;&lt;/label&gt;
+&lt;p&gt;Hello {{name}}!&lt;/p&gt;
+</pre>
+
+<p>That's a neat demo, but in most real-life scenarios it's not much use &ndash; what you want to do is use that data within your app somehow. For that, you can bind to the <code>set</code> event:</p>
+
+<pre class='prettyprint lang-js'>
+view.on('set:name', function ( name ) {
+  app.user.name = name; // or whatever
+});
+</pre>
+
+<p>By default, the data will be updated every time the content of the input changes, because under the hood we're binding to <em>change</em> events and keyboard events. Sometimes that's undesirable and you only want to react to <em>change</em> events (i.e. when the user hits Enter or tabs out of the input) &ndash; if that applies, pass in <code>lazy: true</code> as an initialization option.</p>
+
+<h3>Drop-down lists</h3>
+
+<p>Similarly, you can respond to selections made within a <code>select</code> element:</p>
+
+<pre class='prettyprint lang-html'>
+&lt;select value='{{selected_id}}'&gt;
+  {{#options}}
+  &lt;option value='{{id}}'&gt;{{description}}&lt;/option&gt;
+  {{/options}}
+&lt;/select&gt;
+</pre>
+
+<p>Here, if <code>options</code> is an array of ... TODO</p>
 			
+			<div class='console-container'>
+				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+				<div id='console' class='console' style='display: none;'>
+	view.set( 'animal', 'Bear' );
+
+				</div>
+				<div id='console-reset'>reset</div>
+			</div>
 		</div>
 
 		<div class='main'>
@@ -68,31 +159,77 @@ input {
 			</div>
 			
 			<pre id='template' class='template block prettyprint lang-html'>&lt;div id=&#39;data-input&#39;&gt;
-  &lt;label&gt;&lt;input value=&quot;{{user.firstname}}&quot; placeholder=&quot;first name&quot;&gt;your first name&lt;&#x2F;label&gt;
-  &lt;label&gt;&lt;input value=&quot;{{user.lastname}}&quot; placeholder=&quot;last name&quot;&gt;your last name&lt;&#x2F;label&gt;
-  &lt;label&gt;&lt;input value=&quot;{{user.age}}&quot; type=&quot;range&quot;&gt;your age&lt;&#x2F;label&gt;
+  &lt;h3&gt;Make an animal badge&lt;&#x2F;h3&gt;
+  &lt;select value=&#39;{{animal.type}}&#39;&gt;
+  	&lt;option disabled=&#39;true&#39; value=&#39;none&#39;&gt;Pick an animal&lt;&#x2F;option&gt;
+  	{{#animals}}
+  	&lt;option value=&#39;{{.}}&#39;&gt;{{.}}&lt;&#x2F;option&gt;
+  	{{&#x2F;animals}}
+  &lt;&#x2F;select&gt;
+
+  &lt;label&gt;&lt;input value=&quot;{{animal.name | lowercase}}&quot; placeholder=&quot;e.g. Colin&quot;&gt;pick a name&lt;&#x2F;label&gt;
+  &lt;label&gt;&lt;input value=&quot;{{animal.size | clamp[30,200]}}&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot;&gt;size&lt;&#x2F;label&gt;
+  &lt;label&gt;&lt;input type=&#39;color&#39; value=&#39;{{bgColour}}&#39;&gt;colour&lt;&#x2F;label&gt;
+  &lt;label&gt;&lt;input type=&#39;checkbox&#39; checked=&#39;{{white}}&#39;&gt;white foreground&lt;&#x2F;label&gt;
+
+  &lt;label&gt;&lt;input type=&#39;radio&#39; name=&#39;{{font}}&#39; value=&#39;Arial, sans-serif&#39; checked&gt;Arial&lt;&#x2F;label&gt;
+  &lt;label&gt;&lt;input type=&#39;radio&#39; name=&#39;{{font}}&#39; value=&#39;Baskerville, &quot;Book Antiqua&quot;, Georgia, serif&#39;&gt;Baskerville&lt;&#x2F;label&gt;
+  &lt;label&gt;&lt;input type=&#39;radio&#39; name=&#39;{{font}}&#39; value=&#39;&quot;Comic Sans MS&quot;, cursive, sans-serif&#39;&gt;Comic Sans&lt;&#x2F;label&gt;
 &lt;&#x2F;div&gt;
 
 &lt;div id=&#39;data-output&#39;&gt;
-  &lt;p&gt;
+  &lt;div class=&#39;icon&#39; style=&#39;background-color: {{bgColour}};&#39;&gt;
+  	&lt;img src=&#39;..&#x2F;..&#x2F;assets&#x2F;animals&#x2F;{{animal.type}}-{{colour}}.svg&#39; style=&#39;width: {{animal.size}}px;&#39;&gt;
+  	&lt;span style=&#39;color: {{colour}}; font-family: {{font}};&#39;&gt;{{animal.name | or[&quot;name here&quot;] | lowercase}}&lt;&#x2F;span&gt;
+  &lt;&#x2F;div&gt;
+
+
+  {{#attribution}}
+  &lt;p class=&#39;attribution&#39;&gt;&lt;a href=&quot;http:&#x2F;&#x2F;thenounproject.com&#x2F;noun&#x2F;{{link}}&quot; target=&quot;_blank&quot;&gt;{{animal.type}}&lt;&#x2F;a&gt; {{#id}}designed by &lt;a href=&quot;http:&#x2F;&#x2F;thenounproject.com&#x2F;{{id}}&quot; target=&quot;_blank&quot;&gt;{{name}}&lt;&#x2F;a&gt;{{&#x2F;id}} from The Noun Project&lt;&#x2F;p&gt;
+  {{&#x2F;attribution}}
 &lt;&#x2F;div&gt;</pre>
 			
 
-			<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
+			<pre id='script' class='script block prettyprint lang-js'>var view, attributions, fonts;
+
+view = new Ractive({
   el: &#39;output&#39;,
   template: $(&#39;#template&#39;).text(),
   data: {
-    user: {
-      firstname: &#39;&#39;,
-      lastname: &#39;&#39;,
-      age: 30
-    }
+    animals: [ &#39;Aardvark&#39;, &#39;Bear&#39;, &#39;Cat&#39;, &#39;Dog&#39;, &#39;Elephant&#39;, &#39;Fish&#39;, &#39;Goat&#39; ],
+    animal: {
+      name: &#39;&#39;,
+      type: &#39;none&#39;,
+      size: 30
+    },
+    bgColour: &#39;#abcdef&#39;,
+    colour: &#39;black&#39;,
+    fontChoice: &#39;baskerville&#39;
   },
   formatters: {
-    percent: function ( input ) {
-      return input &#x2F; 100;
-    }
+    lowercase: function ( str ) { return ( &#39;&#39; + ( str || &#39;&#39; ) ).toLowerCase(); },
+    or: function ( str, fallback ) { return str || fallback; },
+    clamp: function ( val, min, max ) { return Math.max( min, Math.min( val, max ) ); }
   }
+});
+
+
+attributions = {
+  Aardvark: { link: &#39;aardvark&#x2F;#icon-No6982&#39;, id: &#39;nmac&#39;, name: &#39;N J MacNeil&#39; },
+  Bear: { link: &#39;bear&#x2F;#icon-No653&#39; },
+  Cat: { link: &#39;cat&#x2F;#icon-No3888&#39;, id: &#39;Luis.F.D.Martins&#39;, name: &#39;Luis Martins&#39; },
+  Dog: { link: &#39;dog&#x2F;#icon-No364&#39; },
+  Elephant: { link: &#39;elephant&#x2F;#icon-No9587&#39;, id: &#39;reshmaso&#39;, name: &#39;Peacock Dream&#39; },
+  Fish: { link: &#39;fish&#x2F;#icon-No638&#39; },
+  Goat: { link: &#39;goat&#x2F;#icon-No2273&#39;, id: &#39;jgray@superfad.com&#39;, name: &#39;Joseph Gray&#39; }
+};
+
+view.on( &#39;set:white&#39;, function ( white ) {
+  view.set( &#39;colour&#39;, white ? &#39;white&#39; : &#39;black&#39; );
+});
+
+view.on( &#39;set:animal.type&#39;, function ( type ) {
+  view.set( &#39;attribution&#39;, attributions[ type ] );
 });</div>
 		</div>
 	</div>
@@ -104,7 +241,7 @@ input {
 	<script src="../../lib/codemirror/javascript.js"></script>
 
 	<!-- Dependencies -->
-	<script src='http://code.jquery.com/jquery-1.9.1.min.js'></script>
+	<script src='../../lib/jquery.js'></script>
 
 	<!-- Component source -->
 	<script src='../../lib/Ractive.js'></script>
@@ -115,12 +252,14 @@ input {
 		domready( function () {
 			var codeMirror, consolePlaceholder, consoleContainer, consoleCode, trim, code, reset, script;
 
-			var testInput = document.createElement( 'input' );
-testInput.setAttribute( 'type', 'range' );
+			[ 'range', 'color' ].forEach( function ( type ) {
+	var testInput = document.createElement( 'input' );
+	testInput.setAttribute( 'type', type );
 
-if ( testInput.type !== 'text' ) {
-	document.body.classList && document.body.classList.add( 'range-input-supported' );
-}
+	if ( testInput.type !== 'text' ) {
+		document.body.classList && document.body.classList.add( type + '-input-supported' );
+	}
+});
 
 			if ( !String.prototype.trim ) {
 				String.prototype.trim = function () {
@@ -130,10 +269,45 @@ if ( testInput.type !== 'text' ) {
 
 			script = document.getElementById( 'script' );
 			code = script.textContent || script.innerText;
-			eval( code );
+			
 
 			prettyPrint();
 
+			reset = function () {
+				eval( code );
+				codeMirror.setValue( consoleCode );
+
+				CodeMirror.keyMap.default.Enter = function ( cm ) {
+					var code = cm.getValue();
+
+					try {
+						eval( code );
+					} catch ( err ) {
+						console.error( err );
+						throw err;
+					}
+				};
+			};
+
+			consoleContainer = document.getElementById( 'console' );
+			consoleCode = consoleContainer.innerHTML.trim();
+			consoleContainer.innerHTML = '';
+
+			consolePlaceholder = document.getElementById( 'console-placeholder' );
+			consolePlaceholder.parentNode.removeChild( consolePlaceholder );
+
+			consoleContainer.style.display = 'block';
+
+			codeMirror = new CodeMirror( consoleContainer, {
+				value: consoleCode,
+				mode: 'javascript',
+				linenumbers: true,
+				autofocus: true,
+				theme: 'ractive'
+			});
+
+			document.getElementById( 'console-reset' ).addEventListener( 'click', reset );
+			reset();
 		});
 	</script>
 

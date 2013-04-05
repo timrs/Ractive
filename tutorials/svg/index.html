@@ -119,7 +119,7 @@
 
 Clock = Ractive.extend({
 	template: $(&#39;#template&#39;).text(),
-	data: { markers: new Array(12) },
+	data: { markers: new Array(12), time: new Date() },
 	formatters: {
 		getHour:   function ( date ) { return date.getHours()   + ( date.getMinutes() &#x2F; 60 ); },
 		getMinute: function ( date ) { return date.getMinutes() + ( date.getSeconds() &#x2F; 60 ); },
@@ -156,7 +156,7 @@ clock = new Clock({ el: &#39;output&#39; });</div>
 	<script src="../../lib/codemirror/javascript.js"></script>
 
 	<!-- Dependencies -->
-	<script src='http://code.jquery.com/jquery-1.9.1.min.js'></script>
+	<script src='../../lib/jquery.js'></script>
 
 	<!-- Component source -->
 	<script src='../../lib/Ractive.js'></script>

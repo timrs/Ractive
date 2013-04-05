@@ -5,7 +5,7 @@
 	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
 	<link rel='stylesheet' href='../../min.css'>
 
-	<title>Formatters (advanced) | Tutorials | Ractive.js</title>
+	<title>Formatters (part two) | Tutorials | Ractive.js</title>
 
 	<style type='text/css'>
 	.bars {
@@ -51,7 +51,7 @@
 	<div class='tutorial'>
 
 		<div class='tutorial-header'>
-			<h2>Formatters (advanced)</h2>
+			<h2>Formatters (part two)</h2>
 
 			<a class='prev' href='../formatters-part-one'><span>&#9664;</span> prev</a>
 			<a class='next' href='../nested-properties'>next <span>&#9654;</span></a>
@@ -127,8 +127,7 @@ view.set( 'input', 0.3 );
   formatters: {
     times:        function ( number, factor  )  { return number * factor; },
     subtractFrom: function ( number, minuend )  { return minuend - number; },
-    clamp:        function ( number, min, max ) { return Math.min( max, Math.max( number, min ) ); },
-    toFixed:      function ( number, decimals ) { return number.toFixed( decimals ); }
+    clamp:        function ( number, min, max ) { return Math.min( max, Math.max( number, min ) ); }
   }
 });</div>
 		</div>
@@ -141,7 +140,7 @@ view.set( 'input', 0.3 );
 	<script src="../../lib/codemirror/javascript.js"></script>
 
 	<!-- Dependencies -->
-	<script src='http://code.jquery.com/jquery-1.9.1.min.js'></script>
+	<script src='../../lib/jquery.js'></script>
 
 	<!-- Component source -->
 	<script src='../../lib/Ractive.js'></script>
