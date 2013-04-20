@@ -76,8 +76,8 @@
 			<div class='console-container'>
 				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
 				<div id='console' class='console' style='display: none;'>
-	bars.forEach( function ( datum, i ) {
-	view.animate( 'bars[' + i + ']', Math.random() * 100, { easing: 'easeTo', duration: 600 } );
+	bars.forEach( function ( bar, i ) {
+	view.animate( 'bars[' + i + ']', Math.random() * 100, { easing: 'easeOut', duration: 600 } );
 });
 
 				</div>
