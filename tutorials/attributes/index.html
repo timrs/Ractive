@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
+	<link rel='stylesheet' href='../../min.css'>
+
+	<title>Attributes | Tutorials | Ractive.js</title>
+
+</head>
+
+
+<body>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
+
+	<div class='tutorial'>
+
+		<div class='tutorial-header'>
+			<h2>Attributes</h2>
+
+			<a class='prev' href='../hello-world'><span>&#9664;</span> prev</a>
+			<a class='next' href='../triples'>next <span>&#9654;</span></a>
+		</div>
+
+		
+		
+		<div class='notes'>
+			
+
+			
+			<p>As well as text, you can make element <strong>attributes</strong> dynamic. Try running this code:</p>
+			
+			<div class='console-container'>
+				<div id='console-placeholder' class='console'>Please wait, page is loading...</div>
+				<div id='console' class='console' style='display: none;'>
+	view.set({
+  color: 'red',
+  font: 'Comic Sans MS',
+  adjective: 'awesome'
+});
+
+				</div>
+				<div id='console-reset'>reset</div>
+			</div>
+		</div>
+
+		<div class='main'>
+
+			<div id='output' class='output block'>
+				Please wait... page is loading
+			</div>
+			
+			<pre id='template' class='template block prettyprint lang-html'>&lt;p&gt;Any attribute can be made
+  &lt;span style=&#39;color: {{color}}; font-family: {{font}};&#39;&gt;{{adjective}}&lt;&#x2F;span&gt;
+&lt;&#x2F;p&gt;</pre>
+			
+
+			<pre id='script' class='script block prettyprint lang-js'>var view = new Ractive({
+  el: &#39;output&#39;,
+  template: $(&#39;#template&#39;).text(),
+  data: {
+    color: &#39;inherit&#39;,
+    font: &#39;inherit&#39;,
+    adjective: &#39;dynamic&#39;
+  }
+});</div>
+		</div>
+	</div>
+
+	<script src="../../lib/domready.js"></script>
+	<script src="../../lib/prettify.js"></script>
+
+	<script src="../../lib/codemirror/codemirror.js"></script>
+	<script src="../../lib/codemirror/javascript.js"></script>
+
+	<!-- Dependencies -->
+	<script src='../../lib/jquery.js'></script>
+
+	<!-- Component source -->
+	<script src='../../lib/Ractive.js'></script>
+	
+	<!--<script src='../examples.js'></script>-->
+
+	<script>
+		domready( function () {
+			var codeMirror, consolePlaceholder, consoleContainer, consoleCode, trim, code, reset, script;
+
+			
+
+			if ( !String.prototype.trim ) {
+				String.prototype.trim = function () {
+					return this.replace( /^\s*/, '' ).replace( /\s*$/, '' );
+				}
+			}
+
+			script = document.getElementById( 'script' );
+			code = script.textContent || script.innerText;
+			
+
+			prettyPrint();
+
+			reset = function () {
+				eval( code );
+				codeMirror.setValue( consoleCode );
+
+				CodeMirror.keyMap.default.Enter = function ( cm ) {
+					var code = cm.getValue();
+
+					try {
+						eval( code );
+					} catch ( err ) {
+						console.error( err );
+						throw err;
+					}
+				};
+			};
+
+			consoleContainer = document.getElementById( 'console' );
+			consoleCode = consoleContainer.innerHTML.trim();
+			consoleContainer.innerHTML = '';
+
+			consolePlaceholder = document.getElementById( 'console-placeholder' );
+			consolePlaceholder.parentNode.removeChild( consolePlaceholder );
+
+			consoleContainer.style.display = 'block';
+
+			codeMirror = new CodeMirror( consoleContainer, {
+				value: consoleCode,
+				mode: 'javascript',
+				linenumbers: true,
+				autofocus: true,
+				theme: 'ractive'
+			});
+
+			document.getElementById( 'console-reset' ).addEventListener( 'click', reset );
+			reset();
+		});
+	</script>
+
+</body>
+</html>

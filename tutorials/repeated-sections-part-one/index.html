@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
+	<link rel='stylesheet' href='../../min.css'>
+
+	<title>Repeated sections (part one) | Tutorials | Ractive.js</title>
+
+</head>
+
+
+<body>
+	<ul class='small-menu'>
+		<li><a href='../../index.html'>Home</a></li>
+		<li><a href='../../tutorials'>Tutorials</a></li>
+		<li><a href='../../docs'>API docs</a></li>
+		<li><a href='../../download'>Download</a></li>
+		<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
+	</ul>
+
+	<div class='tutorial'>
+
+		<div class='tutorial-header'>
+			<h2>Repeated sections (part one)</h2>
+
+			<a class='prev' href='../conditional-sections'><span>&#9664;</span> prev</a>
+			<a class='next' href='../repeated-sections-part-two'>next <span>&#9654;</span></a>
+		</div>
+
+		
+		
+		<div class='notes'>
+			
+
+			
+			<p>If the section key is an <strong>array</strong>, the section will be repeated once for each item in the array, with said item as <em>context</em>. This is useful for constructing lists and tables:</p>
+
+<p><em>Context</em> means that you can refer to properties of each <em>array item</em> within the section. Lets say <code>users</code> is equal to <code>[{name:'Alice'}, {name:'Bob'}, {name:'Charles'}]</code>:</p>
+
+<pre class='prettyprint lang-html'>
+&lt;!-- template --&gt;
+&lt;ul&gt;
+  {{#users}}&lt;li&gt;{{name}}&lt;/li&gt;{{/users}}
+&lt;/ul&gt;
+
+&lt;!-- output --&gt;
+&lt;ul&gt;
+  &lt;li&gt;Alice&lt;/li&gt;
+  &lt;li&gt;Bob&lt;/li&gt;
+  &lt;li&gt;Charles&lt;/li&gt;
+&lt;/ul&gt;
+</pre>
+
+ This assumes, of course, that each array item is an object. If you have an array of <em>primitives</em> instead (e.g. <code>['Alice', 'Bob', 'Charles']</code>) then you can refer to the contents with the <em>implicit iterator</em>, which is a full stop ('period', to any Americans among you):</p>
+
+<pre class='prettyprint lang-html'>
+&lt;!-- template --&gt;
+&lt;ul&gt;
+  {{#users}}&lt;li&gt;{{.}}&lt;/li&gt;{{/users}}
+&lt;/ul&gt;
+</pre>
+
+<p>Implicit iterators can be used in the same way as any other reference &ndash; you can use them in <a href='../triples.html'>triples</a> or with <a href='../formatters.html'>formatters</a>.</p>
+
+<h3>Updating arrays</h3>
+<p>You can modify the array using the familiar <em>pop</em>, <em>push</em>, <em>unshift</em>, <em>shift</em>, <em>splice</em>, <em>sort</em> and <em>reverse</em> methods, and the view will update accordingly:</p>
+
+<pre class='prettyprint lang-js'>
+users.push({ name:'Dave' });
+</pre>
+
+<p>results in...</p>
+
+<pre class='prettyprint lang-html'>
+&lt;!-- output --&gt;
+&lt;ul&gt;
+  &lt;li&gt;Alice&lt;/li&gt;
+  &lt;li&gt;Bob&lt;/li&gt;
+  &lt;li&gt;Charles&lt;/li&gt;
+  &lt;li&gt;Dave&lt;/li&gt;
+&lt;/ul&gt;
+</pre>
+
+<p>(This happens because <span class='logo'>Ractive.js</span> wraps those methods &ndash; if you're a purist about such things, you can disable wrapping by passing in <code>modifyArrays: false</code> as one of the initialisation options. Don't worry though, we're not touching <code>Array.prototype</code>! Just individual arrays.)</p>
+
+
+<h3>Part two</h3>
+<p>In <a href='../repeated-sections-part-two'>part two</a>, we use repeated sections to generate a dynamic, self-updating data view.</p>
+			
+		</div>
+
+		<div class='main'>
+
+		</div>
+	</div>
+
+	<script src="../../lib/domready.js"></script>
+	<script src="../../lib/prettify.js"></script>
+
+	<script src="../../lib/codemirror/codemirror.js"></script>
+	<script src="../../lib/codemirror/javascript.js"></script>
+
+	<!-- Dependencies -->
+	<script src='../../lib/jquery.js'></script>
+
+	<!-- Component source -->
+	<script src='../../lib/Ractive.js'></script>
+	
+	<!--<script src='../examples.js'></script>-->
+
+	<script>
+		domready( function () {
+			var codeMirror, consolePlaceholder, consoleContainer, consoleCode, trim, code, reset, script;
+
+			
+
+			if ( !String.prototype.trim ) {
+				String.prototype.trim = function () {
+					return this.replace( /^\s*/, '' ).replace( /\s*$/, '' );
+				}
+			}
+
+
+			prettyPrint();
+
+		});
+	</script>
+
+</body>
+</html>
