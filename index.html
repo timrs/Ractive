@@ -3,7 +3,7 @@
 <head>
 	<meta charset='utf-8'>
 	<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>
-	<title>Ractive.js - faster, easier, better interactive web development</title>
+	<title>Ractive.js - next-generation DOM manipulation</title>
 
 	<link rel='stylesheet' href='min.css'/>
 </head>
@@ -11,137 +11,175 @@
 <body>
 	<a class='forkme' href="https://github.com/Rich-Harris/Ractive"><img src="assets/forkme.png" alt="Fork me on GitHub"></a>
 
-	<div class='content'>
+	<div class='header'>
 		<div class='title'>
 			<h1>Ractive.js</h1>
-			<p>Faster, easier, better interactive<br> web development</p>
+			<p>Next-generation DOM manipulation</p>
 		</div>
 
 		<ul class='menu'>
 			<li>Home</li>
 			<li><a href='http://learn.ractivejs.org'>Tutorials</a></li>
+			<li><a href='examples'>Examples</a></li>
 			<li><a href='docs'>API docs</a></li>
 			<li><a href='download'>Download</a></li>
 			<li><a href='https://github.com/rich-harris/Ractive'>GitHub</a></li>
 		</ul>
+	</div>
+
+	<div class='content'>
+		<h2>Make the web interactive by default</h2>
 
 
-		<h2>It's templating Jim, but not as we know it</h2> 
+		<p>HTML is an amazing language for creating static documents, but it was never designed for interactive web apps. Many libraries try to get round HTML's limitations, but very few tackle them head on.</p>
 
-		<p>You've probably seen this kind of thing in JavaScript apps:</p>
+		<aside>
+			<p>Ractive is used to create interactive journalism at <a href='http://guardian.co.uk'>guardian.co.uk</a>. Its development was made possible, in part, by the <a href='http://www.gatesfoundation.org/'>Bill &amp; Melinda Gates Foundation</a>'s support for <a href='http://www.guardian.co.uk/global-development'>Guardian Global Development</a>.</p>
+		</aside>
 
-<pre class='prettyprint linenums lang-js'>template = '&lt;p&gt;Hello {{name}}!&lt;/p&gt;';
-data = { name: 'world' };
+		<p><span class='logo'>Ractive.js</span> is different. It solves some of the biggest headaches in web development &ndash; data binding, efficient DOM updates, event handling &ndash; and does so with almost no learning curve. (Here's the <a href='https://github.com/Rich-Harris/Ractive/wiki/60-second-setup'>60 second setup</a>).</p>
 
-element.innerHTML = render( template, data ); // '&lt;p&gt;Hello world!&lt;/p&gt;'
+		<p>How? By changing the relationship between HTML and JavaScript. Before, HTML was an inert substance that you would breathe life into. Now, it's a blueprint for an app that's <em>interactive by default</em>.</p>
+
+
+
+		<h2>Okay. How does it work?</h2>
+
+		<p>By parsing HTML templates and creating a lightweight internal representation of the DOM. Consider the following example:</p>
+
+		<aside>
+			<p>Traditional templating engines and MVC frameworks force you to re-render whenever any part of your data changes. So you have to split components up into atomic chunks &ndash; list items instead of lists, buttons instead of button panels, single data points instead of charts &ndash; often each with its own view class, each with its own <code>render</code> method.</p>
+
+			<p>All too often, templating just means replacing one kind of spaghetti code with another!</p>
+		</aside>
+
+		<div class='demo'>
+<pre class='template block prettyprint lang-html'>
+&lt;p&gt;Hello {{user}}! You have
+    &lt;strong&gt;{{messages.unread}} new messages&lt;/strong&gt;.
+&lt;/p&gt;
 </pre>
 
-		<p>That's great, but what happens when <code>name</code> changes? Typically, you would have a view with a render method that re-created the HTML with the new data, then either updated <code>innerHTML</code>, or did the jQuery/Zepto/Ender equivalent.</p>
-
-		<p>In other words, we just threw away a perfectly good <code>p</code> element! Depending on the complexity of your template, that can mean a lot of work for the browser, as that element now has to be <a href='https://developer.mozilla.org/en-US/docs/JavaScript/Memory_Management'>garbage collected</a>. Unless your user is in an older browser, in which case they may suffer memory leaks instead.</p>
-
-		<p>Of course, rather than doing the quick-at-first-but-wasteful-thereafter <code>innerHTML</code> thing, you might prefer manual DOM manipulation:</p>
-
-		<pre class='prettyprint lang-html'>&lt;p&gt;Hello &lt;span id='name'&gt;&lt;/span&gt;!&lt;/p&gt;</pre>
-
-		<pre class='prettyprint lang-js'>$('#name').text( currentName );</pre>
-
-		<p>But that's no solution. You've added needless complexity to your DOM structure (bad for performance) and made your template more verbose and harder to reason about. And worst of all, you've swapped extra work for the browser with extra work for yourself.</p>
-
-		
-
-		<!--<h2 class='separator'>Hang on &ndash; isn't innerHTML blazing fast?</h2>
-
-		<p>Yes, it is. At least, it is the first time you do it. But after that, each time anything changes, the browser has to discard all your DOM nodes. In the best case, that's extra work for the garbage collector, which has to remove all traces of our <code>p</code> element (he died so young! with so much potential!) before it can spawn the next one.</p>
-
-		<p>With a complex page, that can add up, particularly on less capable devices.</p>
-
-		<p>(Oh, and if you were binding event listeners to the elements you so casually, cruelly destroyed, standy by for memory leaks. That's the worst case.)</p>-->
-
-
-
-		<h2 class='separator'>Enter Ractive.js &ndash; surgical DOM manipulation</h2>
-		<p>There is a better way. Here's a basic <span class='logo'>Ractive.js</span> setup:
-
-<pre class='prettyprint linenums lang-js'>view = new Ractive({
-  el: element,
-  template: '&lt;p&gt;Hello {{name}}!&lt;/p&gt;',
-  data: { name: world }
+<pre class='code block prettyprint lang-js'>
+var ractive = new Ractive({
+  el: result,
+  template: html,
+  data: {
+    user: 'Dave',
+    messages: { total: 11, unread: 4 }
+  }
 });
-// renders &lt;p&gt;Hello world!&lt;/p&gt; to our container element
-
-view.set( 'name', 'Jim' );
-// changes 'world' to 'Jim', leaves everything else untouched
 </pre>
 
-		<p>When <span class='logo'>Ractive.js</span> renders the template, it stores references to the bits that contain dynamic data &ndash; splitting up text nodes if necessary &ndash; and updates them when the data changes. It's quicker than <code>el.innerHTML</code> (or <code>$(el).html()</code>), and doesn't suffer from the many drawbacks of manual DOM manipulation.</p>
+		<div class='output block'></div>
 
+		<aside>
+			<p>Edit this code and hit Shift-Enter to run it, or tap the green button.</p>
+		</aside>
 
-		<h2 class='separator'>Yeah, yeah. Heard of Ember? Knockout?</h2>
-
-		<p>You're right &ndash; we've already got perfectly good tools for keeping views in sync with their models. We've got frameworks like <a href='http://emberjs.com/'>Ember.js</a> and <a href='http://angularjs.org/'>Angular.js</a>, made by brilliant developers and used in successful apps. I'd certainly recommend trying them.</p>
-
-		<p>A lot of the time, though, you don't need the functionality of mega-frameworks, or the extra kilobytes (and learning curve) that go with them. And if you stray from the 'happy path' of anticipated use cases, be prepared to hack your way to a solution. Some developers become sceptical of the <em>magic</em> that goes on under the hood &ndash; if you can't understand it, you can't fix it when it goes wrong.</p>
-
-		<p><a href='http://knockoutjs.com/'>Knockout.js</a> also deserves a special mention, for popularising the idea of <em>declarative data binding</em> in web apps, and doing so with a cracking library. <span class='logo'>Ractive.js</span> is indebted to Knockout, from where it takes much inspiration.</p>
-
-		<p>But <a href='http://mustache.github.com/'>mustache syntax</a> is arguably much nicer to deal with, and your non-developer colleagues can easily understand it.</p>
-
-		<p><span class='logo'>Ractive.js</span> aims to combine <strong>beautiful syntax</strong> with a <strong>simple API</strong>, <strong>miniscule footprint</strong>, and <strong>best-in-class performance</strong>.</p>
-
-
-
-
+<div class='console-outer'>
+	<div class='console' spellcheck='false' contenteditable>ractive.set( 'messages.unread', 5 );</div>
+	<span class='run'>run &raquo;</span>
+</div>
 		
+		</div>
 
-		<h2 class='separator'>Neato features</h2>
+		<p>In this example, <span class='logo'>Ractive.js</span> constructs a parallel DOM representation which is aware of its dependencies on the values of <code>user</code> and <code>messages.unread</code>. When those values change, it knows exactly which parts of the real DOM need to be updated.</p>
 
-		<p><span class='logo'>Ractive.js</span> complies with the <a href='https://github.com/mustache/spec'>mustache spec</a> as closely as possible. If you know mustache, you're good to go. (And if you don't, you can learn it in under 5 minutes.) That means:</p>
-
-		<ul>
-			<li>Nested properties of arbitrary depth: <code>Hi there, {{user.info.name.first}}</code></li>
-			<li>Update entire chunks of HTML with triples: <code>&lt;div&gt;{{{contents}}}&lt;/div&gt;</code></li>
-			<li>Conditionals: <code>{{#gameover}}&lt;p&gt;Game over man, game over!&lt;/p&gt;{{/gameover}}</code></li>
-			<li>Lists: <code>&lt;ul&gt;{{#users}}&lt;li&gt;{{name}} - {{company}}&lt;/li&gt;{{/users}}&lt;/ul&gt;</code></li>
-			<li>Custom delimiters, if you like to kick it <code>&lt;%= old_school %&gt;</code></li>
-			<li>Partials: <code>{{#basket}}&lt;div&gt;{{>item}}&lt;/div&gt;{{/basket}}</code></li>
-			<li>Control over attributes: <code>&lt;div style='color: {{prefs.color}};'&gt;&lt;/div&gt;</code></li>
-		</ul>
-
-		<p>There's more!</p>
-
-		<ul>
-			<li>Precompilation: boost performance. Works on server or client.</li>
-			<li>SVG support: create data-bound graphics</li>
-			<li>Two-way data binding: respond to user input</li>
-			<li>Extensibility: Use <code>Ractive.extend</code> to add your own logic</li>
-			<li>AMD support: including a <a href='https://github.com/Rich-Harris/require-ractive-plugin'>RequireJS loader plugin</a></li>
-		</ul>
-		
-		<p>Take a look at the <a href='http://learn.ractivejs.org'>tutorials</a> to see how <span class='logo'>Ractive.js</span> can make your life as a web developer easier.</p>
-
-		
-
-		
-
-		<h2 class='separator'>Caveats and feedback</h2>
-		<p>This is a personal project in the early stages of development, albeit one I've used regularly in production code in my day job. YMMV! But if you end up using the library I'd love to hear from you &ndash; I'm <a href='http://twitter.com/rich_harris'>@rich_harris</a>.</p>
-
-		<p><a href='https://github.com/Rich-Harris/Ractive/issues'>Bug reports and issues</a> are very welcome, as are pull requests. If you run into problems, I'll do my best to help.</p>
+		<p>This kind of surgical DOM manipulation is more efficient than constantly trashing views only to re-render them, and it scales far more elegantly than manually updating elements.</p>
 
 
-		
+		<h2>So it's like AngularJS?</h2>
 
-		<h2 class='separator'>License</h2>
-		Released under the MIT license.
+		<aside>
+			<p>Other projects which deserve mention: <a href='http://knockoutjs.com/'>Knockout.js</a>, which popularised the idea of declarative data binding in web apps, and which inspired the Ractive tutorials, and <a href='http://backbonejs.org/'>Backbone</a>, which packs so many terrific ideas into such a tiny footprint. Ractive is particularly indebted to these.</p>
+		</aside>
+
+		<p>There are similarities &ndash; <a href='http://angularjs.org/'>AngularJS</a> has been a large source of inspiration. If you haven't tried it, you should. It's a wildly popular framework powering some major applications, and it's built and maintained by the geniuses at Google.</p>
+
+		<p>But the two libraries do things very differently. <span class='logo'>Ractive.js</span> is designed to have as few surprises as possible &ndash; no mysterious <code>$scope.$apply()</code> or dependency injection minification headaches! You can master <span class='logo'>Ractive.js</span> in an hour or two, just by following the <a href='http://learn.ractivejs.org'>interactive tutorials</a>.</p>
+
+
+
+		<h2>Nice! What else can it do?</h2>
+
+		<p>There are several killer features, such as <strong>expressions with dependency tracking</strong>, <strong>animations</strong>, <strong>two-way binding</strong>, <strong>SVG support</strong> and more. To get a feel for what's possible with <span class='logo'>Ractive.js</span>, <a href='examples'>take a look at the examples</a>.</p>
+
+
+		<h2>Sold. Where do I start?</h2>
+
+		<p>You can try the <a href='https://github.com/Rich-Harris/Ractive/wiki/60-second-setup'>60 second setup</a>, <a href='http://learn.ractivejs.org'>follow the interactive tutorials</a>, or <a href='download'>download the code and dive right in</a>.</p>
+
+		<p>If you get stuck, check out the <a href='https://github.com/Rich-Harris/Ractive/wiki/API-reference'>API documentation</a> or get in touch on Twitter &ndash; I'm <a href='http://twitter.com/rich_harris'>@rich_harris</a>. The code is <a href='https://github.com/Rich-Harris/Ractive'>available on GitHub</a> under an MIT license.</p>
+
+
+
+
+
 
 	</div>
 
+	<script src="lib/Ractive.js"></script>
 	<script src="lib/domready.js"></script>
 	<script src="lib/prettify.js"></script>
 
 	<script>
-		domready( prettyPrint );
+		domready( function () {
+			var demoBlocks, i, Demo;
+
+			Demo = function ( el, id ) {
+				var templateBlock, codeBlock, outputBlock, consoleBlock, run, codeToExecute, runConsoleCode;
+
+				templateBlock = el.getElementsByClassName( 'template' )[0];
+				codeBlock = el.getElementsByClassName( 'code' )[0];
+				outputBlock = window[ 'demo_' + id ] = el.getElementsByClassName( 'output' )[0];
+				consoleBlock = el.getElementsByClassName( 'console' )[0];
+				run = el.getElementsByClassName( 'run' )[0];
+
+				codeToExecute = 'var result = window.demo_' + id + ',html="' + templateBlock.innerText.replace( /\r?\n/g, ' ' ) + '";' + codeBlock.innerText + ';window.ractive_' + id + '=ractive;';
+
+				console.log( codeToExecute );
+				eval( codeToExecute );
+
+				runConsoleCode = function () {
+					codeToExecute = 'var ractive = window.ractive_' + id + ';' + consoleBlock.innerText;
+
+
+					
+					try {
+						eval( codeToExecute );
+						consoleBlock.classList.remove( 'error' );
+					} catch ( err ) {
+						consoleBlock.classList.add( 'error' );
+					}
+
+					consoleBlock.blur();
+					
+				};
+
+				consoleBlock.addEventListener( 'keydown', function ( event ) {
+					if ( event.which === 13 && event.shiftKey ) {
+						event.preventDefault();
+
+						runConsoleCode();
+					}
+				});
+
+				run.addEventListener( 'mousedown', runConsoleCode );
+				run.addEventListener( 'touchstart', runConsoleCode );
+			};
+
+			demoBlocks = document.getElementsByClassName( 'demo' );
+
+			i = demoBlocks.length;
+			while ( i-- ) {
+				demo = new Demo( demoBlocks[i], i );
+			}
+
+			prettyPrint();
+		});
+
+		
 	</script>
 	
 </body>
