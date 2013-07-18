@@ -1,11 +1,17 @@
-var items, todoList, filters;
+var items, sampleItems, todoList, filters;
 
 // our model is a normal array - Ractive will intercept calls to mutator methods
 // like push and splice, so we don't need to inherit from a custom class or anything
+sampleItems = [
+	{ description: 'Add a todo' },
+	{ description: 'Add some more todos' },
+	{ description: 'Build something with Ractive.js' }
+];
+
 if ( window.localStorage ) {
-	items = JSON.parse( window.localStorage.getItem( 'ractive-todos' ) ) || [];
+	items = JSON.parse( window.localStorage.getItem( 'ractive-todos' ) ) || sampleItems;
 } else {
-	items = [];
+	items = sampleItems;
 }
 
 // set up some filters

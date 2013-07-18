@@ -6,6 +6,10 @@
 	<title>Ractive.js - next-generation DOM manipulation</title>
 
 	<link rel='stylesheet' href='min.css'/>
+
+	<!--[if lte IE 8]>
+		<script src='lib/respond.min.js'></script>
+	<![endif]-->
 </head>
 
 <body>
@@ -33,9 +37,9 @@
 
 		<p>HTML is an amazing language for creating static documents, but it was never designed for interactive web apps. Many libraries try to get round HTML's limitations, but very few tackle them head on.</p>
 
-		<aside>
+		<div class='aside'>
 			<p>Ractive is used to create interactive journalism at <a href='http://guardian.co.uk'>guardian.co.uk</a>. Its development was made possible, in part, by the <a href='http://www.gatesfoundation.org/'>Bill &amp; Melinda Gates Foundation</a>'s support for <a href='http://www.guardian.co.uk/global-development'>Guardian Global Development</a>.</p>
-		</aside>
+		</div>
 
 		<p><span class='logo'>Ractive.js</span> is different. It solves some of the biggest headaches in web development &ndash; data binding, efficient DOM updates, event handling &ndash; and does so with almost no learning curve. (Here's the <a href='https://github.com/Rich-Harris/Ractive/wiki/60-second-setup'>60 second setup</a>).</p>
 
@@ -47,11 +51,11 @@
 
 		<p>By parsing HTML templates and creating a lightweight internal representation of the DOM. Consider the following example:</p>
 
-		<aside>
+		<div class='aside'>
 			<p>Traditional templating engines and MVC frameworks force you to re-render whenever any part of your data changes. So you have to split components up into atomic chunks &ndash; list items instead of lists, buttons instead of button panels, single data points instead of charts &ndash; often each with its own view class, each with its own <code>render</code> method.</p>
 
 			<p>All too often, templating just means replacing one kind of spaghetti code with another!</p>
-		</aside>
+		</div>
 
 		<div class='demo'>
 <pre class='template block prettyprint lang-html'>
@@ -73,9 +77,9 @@ var ractive = new Ractive({
 
 		<div class='output block'></div>
 
-		<aside>
+		<div class='aside'>
 			<p>Edit this code and hit Shift-Enter to run it, or tap the green button.</p>
-		</aside>
+		</div>
 
 <div class='console-outer'>
 	<div class='console' spellcheck='false' contenteditable>ractive.set( 'messages.unread', 5 );</div>
@@ -91,9 +95,9 @@ var ractive = new Ractive({
 
 		<h2>So it's like AngularJS?</h2>
 
-		<aside>
+		<div class='aside'>
 			<p>Other projects which deserve mention: <a href='http://knockoutjs.com/'>Knockout.js</a>, which popularised the idea of declarative data binding in web apps, and which inspired the Ractive tutorials, and <a href='http://backbonejs.org/'>Backbone</a>, which packs so many terrific ideas into such a tiny footprint. Ractive is particularly indebted to these.</p>
-		</aside>
+		</div>
 
 		<p>There are similarities &ndash; <a href='http://angularjs.org/'>AngularJS</a> has been a large source of inspiration. If you haven't tried it, you should. It's a wildly popular framework powering some major applications, and it's built and maintained by the geniuses at Google.</p>
 
@@ -124,21 +128,94 @@ var ractive = new Ractive({
 	<script src="lib/prettify.js"></script>
 
 	<script>
+		
+		var addClass, removeClass, trim;
+
+		trim = function ( str ) {
+			return str.replace( /^\s*/, '' ).replace( /\s*$/, '' );
+		};
+
+		addClass = function ( node, className ) {
+			if ( node.classList && node.classList.add ) {
+				addClass = function ( node, className ) {
+					node.classList.add( className );
+				};
+			}
+
+			else {
+				addClass = function ( node, className ) {
+					var classNames, index, i;
+
+					classNames = ( node.getAttribute( 'class' ) || '' ).split( ' ' );
+					
+					i = classNames.length;
+					while ( i-- ) {
+						classNames[i] = trim( classNames[i] );
+					}
+
+					if ( classNames.indexOf ) {
+						index = classNames.indexOf( className );
+					} else {
+						index = indexOf( className, classNames );
+					}
+
+					if ( index === -1 ) {
+						node.setAttribute( 'class', classNames.concat( className ).join( ' ' ) );
+					}
+				};
+			}
+
+			addClass( node, className );
+		};
+
+		removeClass = function ( node, className ) {
+			if ( node.classList && node.classList.remove ) {
+				removeClass = function ( node, className ) {
+					node.classList.remove( className );
+				};
+			}
+
+			else {
+				removeClass = function ( node, className ) {
+					var classNames, index, i;
+
+					classNames = ( node.getAttribute( 'class' ) || '' ).split( ' ' );
+					
+					i = classNames.length;
+					while ( i-- ) {
+						classNames[i] = trim( classNames[i] );
+					}
+
+					if ( classNames.indexOf ) {
+						index = classNames.indexOf( className );
+					} else {
+						index = indexOf( className, classNames );
+					}
+
+					if ( index !== -1 ) {
+						classNames.splice( index, 1 );
+						node.setAttribute( 'class', classNames.join( ' ' ) );
+					}
+				};
+			}
+
+			removeClass( node, className );
+		};
+
 		domready( function () {
 			var demoBlocks, i, Demo;
 
 			Demo = function ( el, id ) {
 				var templateBlock, codeBlock, outputBlock, consoleBlock, run, codeToExecute, runConsoleCode;
 
-				templateBlock = el.getElementsByClassName( 'template' )[0];
-				codeBlock = el.getElementsByClassName( 'code' )[0];
-				outputBlock = window[ 'demo_' + id ] = el.getElementsByClassName( 'output' )[0];
-				consoleBlock = el.getElementsByClassName( 'console' )[0];
-				run = el.getElementsByClassName( 'run' )[0];
+				templateBlock = el.querySelector( '.template' );
+				codeBlock = el.querySelector( '.code' );
+				outputBlock = window[ 'demo_' + id ] = el.querySelector( '.output' );
+				consoleBlock = el.querySelector( '.console' );
+				run = el.querySelector( '.run' );
 
 				codeToExecute = 'var result = window.demo_' + id + ',html="' + templateBlock.innerText.replace( /\r?\n/g, ' ' ) + '";' + codeBlock.innerText + ';window.ractive_' + id + '=ractive;';
 
-				console.log( codeToExecute );
 				eval( codeToExecute );
 
 				runConsoleCode = function () {
@@ -148,9 +225,9 @@ var ractive = new Ractive({
 					
 					try {
 						eval( codeToExecute );
-						consoleBlock.classList.remove( 'error' );
+						removeClass( consoleBlock, 'error' );
 					} catch ( err ) {
-						consoleBlock.classList.add( 'error' );
+						addClass( consoleBlock, 'error' );
 					}
 
 					consoleBlock.blur();
@@ -169,7 +246,7 @@ var ractive = new Ractive({
 				run.addEventListener( 'touchstart', runConsoleCode );
 			};
 
-			demoBlocks = document.getElementsByClassName( 'demo' );
+			demoBlocks = document.querySelectorAll( '.demo' );
 
 			i = demoBlocks.length;
 			while ( i-- ) {

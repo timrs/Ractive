@@ -1,186 +1,3 @@
-(function ( win ) {
-
-	var doc = win.document;
-
-	if ( !doc ) {
-		return;
-	}
-
-	// Shims for older browsers
-
-	if ( !Date.now ) {
-		Date.now = function () { return +new Date(); };
-	}
-
-	if ( doc && !doc.createElementNS ) {
-		doc.createElementNS = function ( ns, type ) {
-			if ( ns && ns !== 'http://www.w3.org/1999/xhtml' ) {
-				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
-			}
-
-			return doc.createElement( type );
-		};
-	}
-
-	if ( !String.prototype.trim ) {
-		String.prototype.trim = function () {
-			return this.replace(/^\s+/, '').replace(/\s+$/, '');
-		};
-	}
-
-	
-	// Array extras
-	if ( !Array.prototype.indexOf ) {
-		Array.prototype.indexOf = function ( needle, i ) {
-			var len;
-
-			if ( i === undefined ) {
-				i = 0;
-			}
-
-			if ( i < 0 ) {
-				i+= this.length;
-			}
-
-			if ( i < 0 ) {
-				i = 0;
-			}
-
-			for ( len = this.length; i<len; i++ ) {
-				if ( this.hasOwnProperty( i ) && this[i] === needle ) {
-					return i;
-				}
-			}
-
-			return -1;
-		};
-	}
-
-	if ( !Array.prototype.forEach ) {
-		Array.prototype.forEach = function ( callback, context ) {
-			var i, len;
-
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
-					callback.call( context, this[i], i, this );
-				}
-			}
-		};
-	}
-
-	if ( !Array.prototype.map ) {
-		Array.prototype.map = function ( mapper, context ) {
-			var i, len, mapped = [];
-
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
-					mapped[i] = mapper.call( context, this[i], i, this );
-				}
-			}
-
-			return mapped;
-		};
-	}
-
-	if ( !Array.prototype.filter ) {
-		Array.prototype.filter = function ( filter, context ) {
-			var i, len, filtered = [];
-
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) && filter.call( context, this[i], i, this ) ) {
-					filtered[ filtered.length ] = this[i];
-				}
-			}
-
-			return filtered;
-		};
-	}
-
-	// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
-	// addEventListener polyfill IE6+
-	if ( !win.addEventListener ) {
-		(function ( win, doc ) {
-			var Event, addEventListener, removeEventListener, head, style;
-
-			Event = function ( e, element ) {
-				var property, instance = this;
-
-				for ( property in e ) {
-					instance[ property ] = e[ property ];
-				}
-
-				instance.currentTarget =  element;
-				instance.target = e.srcElement || element;
-				instance.timeStamp = +new Date();
-
-				instance.preventDefault = function () {
-					e.returnValue = false;
-				};
-
-				instance.stopPropagation = function () {
-					e.cancelBubble = true;
-				};
-			};
-
-			addEventListener = function ( type, listener ) {
-				var element = this, listeners, i;
-
-				listeners = element.listeners || ( element.listeners = [] );
-				i = listeners.length;
-				
-				listeners[i] = [ listener, function (e) {
-					listener.call( element, new Event( e, element ) );
-				}];
-
-				element.attachEvent( 'on' + type, listeners[i][1] );
-			};
-
-			removeEventListener = function ( type, listener ) {
-				var element = this, listeners, len, index;
-
-				if ( !element.listeners ) {
-					return;
-				}
-
-				listeners = element.listeners;
-				i = listeners.length;
-
-				while ( i-- ) {
-					if (listeners[i][0] === listener) {
-						element.detachEvent( 'on' + type, listeners[i][1] );
-					}
-				}
-			};
-
-			win.addEventListener = doc.addEventListener = addEventListener;
-			win.removeEventListener = doc.removeEventListener = removeEventListener;
-
-			if ( 'Element' in win ) {
-				Element.prototype.addEventListener = addEventListener;
-				Element.prototype.removeEventListener = removeEventListener;
-			} else {
-				head = doc.getElementsByTagName('head')[0];
-				style = doc.createElement('style');
-
-				head.insertBefore( style, head.firstChild );
-
-				style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
-			}
-		}( win, doc ));
-	}
-
-}( this ));
-
-/*! Ractive - v0.3.2 - 2013-07-18
-* Next-generation DOM manipulation
-
-* http://rich-harris.github.com/Ractive/
-* Copyright (c) 2013 Rich Harris; Licensed MIT */
-
-/*jslint eqeq: true, plusplus: true */
-/*global document, HTMLElement */
-
-
 (function ( global ) {
 
 'use strict';
@@ -235,6 +52,7 @@ defineProperty,
 defineProperties,
 create,
 createFromNull,
+hasOwn = {}.hasOwnProperty,
 noop = function () {},
 
 
@@ -446,6 +264,179 @@ var cssTransitionsEnabled, transition, transitionend;
 	}
 
 }());
+(function ( win ) {
+
+	var doc = win.document;
+
+	if ( !doc ) {
+		return;
+	}
+
+	// Shims for older browsers
+
+	if ( !Date.now ) {
+		Date.now = function () { return +new Date(); };
+	}
+
+	if ( doc && !doc.createElementNS ) {
+		doc.createElementNS = function ( ns, type ) {
+			if ( ns && ns !== 'http://www.w3.org/1999/xhtml' ) {
+				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml';
+			}
+
+			return doc.createElement( type );
+		};
+	}
+
+	if ( !String.prototype.trim ) {
+		String.prototype.trim = function () {
+			return this.replace(/^\s+/, '').replace(/\s+$/, '');
+		};
+	}
+
+	
+	// Array extras
+	if ( !Array.prototype.indexOf ) {
+		Array.prototype.indexOf = function ( needle, i ) {
+			var len;
+
+			if ( i === undefined ) {
+				i = 0;
+			}
+
+			if ( i < 0 ) {
+				i+= this.length;
+			}
+
+			if ( i < 0 ) {
+				i = 0;
+			}
+
+			for ( len = this.length; i<len; i++ ) {
+				if ( hasOwn.call( this, i ) && this[i] === needle ) {
+					return i;
+				}
+			}
+
+			return -1;
+		};
+	}
+
+	if ( !Array.prototype.forEach ) {
+		Array.prototype.forEach = function ( callback, context ) {
+			var i, len;
+
+			for ( i=0, len=this.length; i<len; i+=1 ) {
+				if ( hasOwn.call( this, i ) ) {
+					callback.call( context, this[i], i, this );
+				}
+			}
+		};
+	}
+
+	if ( !Array.prototype.map ) {
+		Array.prototype.map = function ( mapper, context ) {
+			var i, len, mapped = [];
+
+			for ( i=0, len=this.length; i<len; i+=1 ) {
+				if ( hasOwn.call( this,  i ) ) {
+					mapped[i] = mapper.call( context, this[i], i, this );
+				}
+			}
+
+			return mapped;
+		};
+	}
+
+	if ( !Array.prototype.filter ) {
+		Array.prototype.filter = function ( filter, context ) {
+			var i, len, filtered = [];
+
+			for ( i=0, len=this.length; i<len; i+=1 ) {
+				if ( hasOwn.call( this, i ) && filter.call( context, this[i], i, this ) ) {
+					filtered[ filtered.length ] = this[i];
+				}
+			}
+
+			return filtered;
+		};
+	}
+
+	// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
+	// addEventListener polyfill IE6+
+	if ( !win.addEventListener ) {
+		(function ( win, doc ) {
+			var Event, addEventListener, removeEventListener, head, style;
+
+			Event = function ( e, element ) {
+				var property, instance = this;
+
+				for ( property in e ) {
+					instance[ property ] = e[ property ];
+				}
+
+				instance.currentTarget =  element;
+				instance.target = e.srcElement || element;
+				instance.timeStamp = +new Date();
+
+				instance.preventDefault = function () {
+					e.returnValue = false;
+				};
+
+				instance.stopPropagation = function () {
+					e.cancelBubble = true;
+				};
+			};
+
+			addEventListener = function ( type, listener ) {
+				var element = this, listeners, i;
+
+				listeners = element.listeners || ( element.listeners = [] );
+				i = listeners.length;
+				
+				listeners[i] = [ listener, function (e) {
+					listener.call( element, new Event( e, element ) );
+				}];
+
+				element.attachEvent( 'on' + type, listeners[i][1] );
+			};
+
+			removeEventListener = function ( type, listener ) {
+				var element = this, listeners, len, index;
+
+				if ( !element.listeners ) {
+					return;
+				}
+
+				listeners = element.listeners;
+				i = listeners.length;
+
+				while ( i-- ) {
+					if (listeners[i][0] === listener) {
+						element.detachEvent( 'on' + type, listeners[i][1] );
+					}
+				}
+			};
+
+			win.addEventListener = doc.addEventListener = addEventListener;
+			win.removeEventListener = doc.removeEventListener = removeEventListener;
+
+			if ( 'Element' in win ) {
+				Element.prototype.addEventListener = addEventListener;
+				Element.prototype.removeEventListener = removeEventListener;
+			} else {
+				head = doc.getElementsByTagName('head')[0];
+				style = doc.createElement('style');
+
+				head.insertBefore( style, head.firstChild );
+
+				style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
+			}
+		}( win, doc ));
+	}
+
+}( global ));
+
 executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
 	var transitionName, transitionParams, fragment, transitionManager, transition;
 
@@ -1417,7 +1408,7 @@ stripStandalones = function ( tokens ) {
 			animations = [];
 
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					animations[ animations.length ] = animate( this, k, keypath[k], options );
 				}
 			}
@@ -1564,7 +1555,7 @@ proto.get = function ( keypath, dontNormalise ) {
 
 	else {
 		// cache hit? great
-		if ( cache.hasOwnProperty( keypath ) && cache[ keypath ] !== UNSET ) {
+		if ( hasOwn.call( cache, keypath ) && cache[ keypath ] !== UNSET ) {
 			return cache[ keypath ];
 		}
 
@@ -1573,7 +1564,7 @@ proto.get = function ( keypath, dontNormalise ) {
 	}
 
 	// we may have a cache hit now that it's been normalised
-	if ( cache.hasOwnProperty( normalised ) && cache[ normalised ] !== UNSET ) {
+	if ( hasOwn.call( cache, normalised ) && cache[ normalised ] !== UNSET ) {
 		if ( cache[ normalised ] === undefined && ignoreUndefined ) {
 			// continue
 		} else {
@@ -1801,7 +1792,7 @@ resolveRef = function ( ractive, ref, contextStack ) {
 
 		parentValue = ractive.get( contextKeys.concat( keys ) );
 
-		if ( typeof parentValue === 'object' && parentValue !== null && parentValue.hasOwnProperty( lastKey ) ) {
+		if ( typeof parentValue === 'object' && parentValue !== null && hasOwn.call( parentValue, lastKey ) ) {
 			keypath = innerMostContext + '.' + ref;
 			break;
 		}
@@ -1876,7 +1867,7 @@ proto.link = function ( keypath ) {
 			options = callback;
 
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					callback = keypath[k];
 					observers[ observers.length ] = observe( this, k, callback, options );
 				}
@@ -1977,7 +1968,7 @@ proto.on = function ( eventName, callback ) {
 		listeners = [];
 
 		for ( n in eventName ) {
-			if ( eventName.hasOwnProperty( n ) ) {
+			if ( hasOwn.call( eventName, n ) ) {
 				listeners[ listeners.length ] = this.on( n, eventName[ n ] );
 			}
 		}
@@ -2030,7 +2021,7 @@ proto.requestFullscreen = function () {
 		// setting multiple values in one go
 		if ( isObject( keypath ) ) {
 			for ( k in keypath ) {
-				if ( keypath.hasOwnProperty( k ) ) {
+				if ( hasOwn.call( keypath, k ) ) {
 					keys = splitKeypath( k );
 					normalised = keys.join( '.' );
 					value = keypath[k];
@@ -2288,7 +2279,7 @@ adaptors.backbone = function ( model, path ) {
 					result = {};
 
 					for ( attr in attrs ) {
-						if ( attrs.hasOwnProperty( attr ) ) {
+						if ( hasOwn.call( attrs, attr ) ) {
 							result[ path + attr ] = attrs[ attr ];
 						}
 					}
@@ -2346,7 +2337,7 @@ adaptors.statesman = function ( model, path ) {
 			result = {};
 
 			for ( attr in attrs ) {
-				if ( attrs.hasOwnProperty( attr ) ) {
+				if ( hasOwn.call( attrs, attr ) ) {
 					result[ path + attr ] = attrs[ attr ];
 				}
 			}
@@ -2514,7 +2505,7 @@ eventDefinitions.hover = function ( node, fire ) {
 					node.removeEventListener( keydownHandler );
 				}
 			};
-		}
+		};
 	};
 
 	eventDefinitions.enter = makeKeyDefinition( 13 );
@@ -2523,8 +2514,6 @@ eventDefinitions.hover = function ( node, fire ) {
 	eventDefinitions.space = makeKeyDefinition( 32 );
 
 }());
-
-enter: 
 eventDefinitions.tap = function ( node, fire ) {
 	var mousedown, touchstart, distanceThreshold, timeThreshold;
 
@@ -2744,7 +2733,7 @@ eventDefinitions.tap = function ( node, fire ) {
 
 		// Blacklisted properties don't extend the child, as they are part of the initialisation options
 		for ( key in childProps ) {
-			if ( childProps.hasOwnProperty( key ) && !Child.prototype.hasOwnProperty( key ) && blacklist.indexOf( key ) === -1 ) {
+			if ( hasOwn.call( childProps, key ) && !hasOwn.call( Child.prototype, key ) && blacklist.indexOf( key ) === -1 ) {
 				member = childProps[ key ];
 
 				// if this is a method that overwrites a prototype method, we may need
@@ -2805,7 +2794,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		// Parse partials, if necessary
 		if ( Child.partials ) {
 			for ( key in Child.partials ) {
-				if ( Child.partials.hasOwnProperty( key ) ) {
+				if ( hasOwn.call( Child.partials, key ) ) {
 					if ( typeof Child.partials[ key ] === 'string' ) {
 						if ( !Ractive.parse ) {
 							throw new Error( missingParser );
@@ -2857,7 +2846,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		var key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) && !target.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) && !hasOwn.call( target, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -2867,7 +2856,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		var target = {}, key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -2879,7 +2868,7 @@ eventDefinitions.tap = function ( node, fire ) {
 		var key;
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -2953,8 +2942,8 @@ interpolators = {
 		interpolators = {};
 
 		for ( prop in from ) {
-			if ( from.hasOwnProperty( prop ) ) {
-				if ( to.hasOwnProperty( prop ) ) {
+			if ( hasOwn.call( from, prop ) ) {
+				if ( hasOwn.call( to, prop ) ) {
 					properties[ properties.length ] = prop;
 					interpolators[ prop ] = Ractive.interpolate( from[ prop ], to[ prop ] );
 				}
@@ -2966,7 +2955,7 @@ interpolators = {
 		}
 
 		for ( prop in to ) {
-			if ( to.hasOwnProperty( prop ) && !from.hasOwnProperty( prop ) ) {
+			if ( hasOwn.call( to, prop ) && !hasOwn.call( from, prop ) ) {
 				intermediate[ prop ] = to[ prop ];
 			}
 		}
@@ -3007,7 +2996,7 @@ Ractive = function ( options ) {
 	// Options
 	// -------
 	for ( key in defaultOptions ) {
-		if ( !options.hasOwnProperty( key ) ) {
+		if ( !hasOwn.call( options, key ) ) {
 			options[ key ] = ( typeof defaultOptions[ key ] === 'object' ? {} : defaultOptions[ key ] );
 		}
 	}
@@ -3150,7 +3139,7 @@ Ractive = function ( options ) {
 	// If we were given unparsed partials, parse them
 	if ( options.partials ) {
 		for ( key in options.partials ) {
-			if ( options.partials.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( options.partials, key ) ) {
 				partial = options.partials[ key ];
 
 				if ( typeof partial === 'string' ) {
@@ -3168,7 +3157,7 @@ Ractive = function ( options ) {
 
 	// Unpack string-based partials, if necessary
 	for ( key in this.partials ) {
-		if ( this.partials.hasOwnProperty( key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
+		if ( hasOwn.call( this.partials, key ) && this.partials[ key ].length === 1 && typeof this.partials[ key ][0] === 'string' ) {
 			this.partials[ key ] = this.partials[ key ][0];
 		}
 	}
@@ -3223,7 +3212,7 @@ Ractive = function ( options ) {
 		}
 
 		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) ) {
+			if ( hasOwn.call( source, key ) ) {
 				target[ key ] = source[ key ];
 			}
 		}
@@ -3546,7 +3535,7 @@ Animation = function ( options ) {
 
 	// from and to
 	for ( key in options ) {
-		if ( options.hasOwnProperty( key ) ) {
+		if ( hasOwn.call( options, key ) ) {
 			this[ key ] = options[ key ];
 		}
 	}
@@ -3812,7 +3801,7 @@ animationCollection = {
 			// using the normal method - we want to do a smart update whereby elements
 			// are removed from the right place. But we do need to clear the cache
 			clearCache( root, keypath );
-			
+
 			// find dependants. If any are DOM sections, we do a smart update
 			// rather than a ractive.set() blunderbuss
 			smartUpdateQueue = [];
@@ -3855,10 +3844,14 @@ animationCollection = {
 				upstreamQueue[ upstreamQueue.length ] = keys.join( '.' );
 			}
 
-			// ...and length property!
-			upstreamQueue[ upstreamQueue.length ] = keypath + '.length';
-
 			notifyMultipleDependants( root, upstreamQueue, true );
+
+			// length property has changed - notify dependants
+			// TODO in some cases (e.g. todo list example, when marking all as complete, then
+			// adding a new item (which should deactivate the 'all complete' checkbox
+			// but doesn't) this needs to happen before other updates. But doing so causes
+			// other mental problems. not sure what's going on...
+			notifyDependants( root, keypath + '.length', true );
 		};
 
 		// TODO can we get rid of this whole queueing nonsense?
@@ -4524,7 +4517,7 @@ DomElement = function ( options, docFrag ) {
 	// create event proxies
 	if ( docFrag && descriptor.v ) {
 		for ( eventName in descriptor.v ) {
-			if ( descriptor.v.hasOwnProperty( eventName ) ) {
+			if ( hasOwn.call( descriptor.v, eventName ) ) {
 				eventNames = eventName.split( '-' );
 				i = eventNames.length;
 
@@ -4541,7 +4534,7 @@ DomElement = function ( options, docFrag ) {
 	bindable = []; // save these till the end
 
 	for ( attrName in descriptor.a ) {
-		if ( descriptor.a.hasOwnProperty( attrName ) ) {
+		if ( hasOwn.call( descriptor.a, attrName ) ) {
 			attrValue = descriptor.a[ attrName ];
 			
 			attr = new DomAttribute({
@@ -7638,7 +7631,9 @@ splitKeypath =  function ( keypath ) {
 
 
 		getReference = function ( tokenizer ) {
-			var name, dot, combo, refinement, pos, invocation;
+			var startPos, name, dot, combo, refinement, lastDotIndex;
+
+			startPos = tokenizer.pos;
 
 			// could be an implicit iterator ('.'), a prefixed reference ('.name') or a
 			// standard reference ('name')
@@ -7651,24 +7646,21 @@ splitKeypath =  function ( keypath ) {
 				return null;
 			}
 
-			pos = tokenizer.pos;
-
-			if ( invocation = getInvocation( tokenizer ) ) {
-				tokenizer.pos = pos;
+			while ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) {
+				combo += refinement;
 			}
 
-			while ( !invocation && ( refinement = getDotRefinement( tokenizer ) || getArrayRefinement( tokenizer ) ) ) {
-				console.log( 'refinement:', refinement );
+			if ( getStringMatch( tokenizer, '(' ) ) {
 				
-
-				combo += refinement;
-				pos = tokenizer.pos;
-
-				// if the next token is an invocation, don't accept it - methods need to have the
-				// proper context, and including the method name in the reference will break things
-				if ( invocation = getInvocation( tokenizer ) ) {
-					console.log( 'bad' );
-					tokenizer.pos = pos;
+				// if this is a method invocation (as opposed to a function) we need
+				// to strip the method name from the reference combo, else the context
+				// will be wrong
+				lastDotIndex = combo.lastIndexOf( '.' );
+				if ( lastDotIndex !== -1 ) {
+					combo = combo.substr( 0, lastDotIndex );
+					tokenizer.pos = startPos + combo.length;
+				} else {
+					tokenizer.pos -= 1;
 				}
 			}
 
@@ -7696,7 +7688,7 @@ splitKeypath =  function ( keypath ) {
 					};
 				}
 
-				fail( 'a property name' );
+				fail( tokenizer, 'a property name' );
 			}
 
 			// "[" expression "]"
@@ -7705,13 +7697,13 @@ splitKeypath =  function ( keypath ) {
 
 				expr = getExpression( tokenizer );
 				if ( !expr ) {
-					fail( 'an expression' );
+					fail( tokenizer, 'an expression' );
 				}
 
 				allowWhitespace( tokenizer );
 
 				if ( !getStringMatch( tokenizer, ']' ) ) {
-					fail( '"]"' );
+					fail( tokenizer, '"]"' );
 				}
 
 				return {
