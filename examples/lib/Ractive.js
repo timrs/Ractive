@@ -171,7 +171,7 @@
 
 }( this ));
 
-/*! Ractive - v0.3.2 - 2013-07-17
+/*! Ractive - v0.3.2 - 2013-07-18
 * Next-generation DOM manipulation
 
 * http://rich-harris.github.com/Ractive/
@@ -2460,6 +2460,35 @@ easing = {
 		if ( ( pos /= 0.5 ) < 1 ) { return ( 0.5 * Math.pow( pos, 3 ) ); }
 		return ( 0.5 * ( Math.pow( ( pos - 2 ), 3 ) + 2 ) );
 	}
+};
+eventDefinitions.hover = function ( node, fire ) {
+	var mouseoverHandler, mouseoutHandler;
+
+	mouseoverHandler = function ( event ) {
+		fire({
+			node: node,
+			original: event,
+			hover: true
+		});
+	};
+
+	mouseoutHandler = function ( event ) {
+		fire({
+			node: node,
+			original: event,
+			hover: false
+		});
+	};
+
+	node.addEventListener( 'mouseover', mouseoverHandler );
+	node.addEventListener( 'mouseout', mouseoutHandler );
+
+	return {
+		teardown: function () {
+			node.removeEventListener( 'mouseover', mouseoverHandler );
+			node.removeEventListener( 'mouseout', mouseoutHandler );
+		}
+	};
 };
 (function () {
 

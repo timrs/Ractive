@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang='en-GB'>
+<head>
+	<meta charset='utf-8'>
+	<title>Examples | Ractive.js</title>
+
+	<!-- CSS -->
+	<!--<link rel='stylesheet' href='../shared.css'>-->
+	<link rel='stylesheet' href='../../min.css'>
+	<link rel='stylesheet' href='styles.css'>
+</head>
+
+<body class='example'>
+	
+	<div class='header'>
+		<h1><a class='stealth' href='../../'>Ractive.js</a></h1>
+		<a class='more-examples' href='../'>more examples &raquo;</a>
+	</div>
+
+	<div id='example'></div>
+
+	<div id='info'>
+
+		
+		
+	</div>
+
+
+	<script id='infoTemplate' type='ractive'>
+		<div class='controls'>
+			<input class='tab' type='radio' name='{{selected}}' value='readme'>
+			<input class='tab' type='radio' name='{{selected}}' value='template'>
+			<input class='tab' type='radio' name='{{selected}}' value='javascript'>
+			<input class='tab' type='radio' name='{{selected}}' value='css'>
+		</div>
+
+		<div class='wrapper'>
+			<div id='readme'     class='{{( selected === "readme" ? "visible" : "hidden" )}}'></div>
+			<pre id='template'   class='language-html {{( selected === "template" ? "visible" : "hidden" )}}'></pre>
+			<pre id='javascript' class='language-javascript {{( selected === "javascript" ? "visible" : "hidden" )}}'></pre>
+			<pre id='css'        class='language-css {{( selected === "css" ? "visible" : "hidden" )}}'></pre>
+		</div>
+	</script>
+	
+
+	<!-- JS -->
+	<script src='../lib/Ractive.js'></script>
+	<script src='../lib/reqwest.js'></script>
+	<script src='../lib/domready.js'></script>
+	<script src='../lib/highlight.js/highlight.pack.js'></script>
+	<script src='../example.js'></script>
+</body>
+</html>

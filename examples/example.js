@@ -6,6 +6,7 @@
 		template: reqwest( 'template.html' ),
 		css: reqwest({ url: 'styles.css', type: 'text' }),
 		javascript: reqwest({ url: 'javascript.js', type: 'text' }),
+		libs: reqwest({ url: 'libs.js', type: 'js' }),
 		readme: reqwest( 'readme.html' )
 	};
 
@@ -21,32 +22,35 @@
 			}
 		});
 
-		/*remaining = 3;
-		checkin = function () {
-			if ( --remaining ) {
-				return;
-			}
-
-			prettyPrint();
-		};*/
-
 		promises.template.then( function ( template ) {
-			var scr;
+			var scr, libs;
 
 			window.template = template;
 			window.example = document.getElementById( 'example' );
 
-			scr = document.createElement( 'script' );
-			scr.src = 'javascript.js';
+			libs = document.createElement( 'script' );
+			libs.src = 'libs.js';
 
-			document.body.appendChild( scr );
+			libs.onload = libs.onerror = function () {
+				console.log( promises.libs );
 
-			info.nodes.template.innerText = template.replace( /\t/g, '  ' );
-			hljs.highlightBlock( info.nodes.template );
+				scr = document.createElement( 'script' );
+				scr.src = 'javascript.js';
+
+				document.body.appendChild( scr );
+
+
+				info.nodes.template.innerText = template.replace( /\t/g, '  ' );
+				hljs.highlightBlock( info.nodes.template );
+			};
+
+			document.body.appendChild( libs );
 		});
 
 		promises.readme.then( function ( readme ) {
 			info.nodes.readme.innerHTML = readme;
+			hljs.tabReplace = '  ';
+			hljs.initHighlighting();
 		});
 
 		promises.javascript.then( function ( req ) {
