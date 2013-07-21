@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang='en-GB'>
+<head>
+	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=Edge,chrome=1'>
+
+	<title>Examples | Ractive.js</title>
+
+	<!-- CSS -->
+	<!--<link rel='stylesheet' href='../shared.css'>-->
+	<link rel='stylesheet' href='../../min.css'>
+	<link rel='stylesheet' href='styles.css'>
+
+	<!--[if lte IE 8]>
+		<script src='../lib/aight.min.js'></script>
+		<script>
+			window.internetExploder = true;
+		</script>
+	<![endif]-->
+</head>
+
+<body class='example'>
+	
+	<div class='header'>
+		<h1><a class='stealth' href='../../'>Ractive.js</a></h1>
+		<a class='more-examples' href='../'>more examples &raquo;</a>
+	</div>
+
+	<div id='example'>
+		<noscript>
+			<p class='message'>Please <a href='www.enable-javascript.com'>enable JavaScript</a> to view this example.</p>
+		</noscript>
+	</div>
+
+	<div id='info'></div>
+
+
+	<script id='infoTemplate' type='ractive'>
+		<div class='controls'>
+			<span proxy-tap='select:readme'     class='tab {{( selected === "readme"     ? "selected" : "" )}}'>readme</span>
+			<span proxy-tap='select:template'   class='tab {{( selected === "template"   ? "selected" : "" )}}'>template</span>
+			<span proxy-tap='select:javascript' class='tab {{( selected === "javascript" ? "selected" : "" )}}'>javascript</span>
+			<span proxy-tap='select:css'        class='tab {{( selected === "css"        ? "selected" : "" )}}'>css</span>
+		</div>
+
+		<div class='wrapper'>
+			<div id='readme'     class='{{( selected === "readme" ? "visible" : "hidden" )}}'></div>
+			<pre id='template'   class='language-html {{( selected === "template" ? "visible" : "hidden" )}}'></pre>
+			<pre id='javascript' class='language-javascript {{( selected === "javascript" ? "visible" : "hidden" )}}'></pre>
+			<pre id='css'        class='language-css {{( selected === "css" ? "visible" : "hidden" )}}'></pre>
+		</div>
+	</script>
+	
+
+	<!-- JS -->
+	<script src='../lib/Ractive.js'></script>
+	<script src='../lib/reqwest.js'></script>
+	<script src='../lib/domready.js'></script>
+	
+	<script src='../lib/highlight.js/highlight.pack.js'></script>
+	
+	<script src='../example.js'></script>
+</body>
+</html>

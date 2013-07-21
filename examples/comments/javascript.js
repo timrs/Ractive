@@ -15,6 +15,7 @@ sampleComments = [
 ractive = new Ractive({
 	el: example,
 	template: template,
+	noIntro: true, // disable transitions during initial render
 	data: {
 		comments: sampleComments,
 		renderMarkdown: function ( md ) {

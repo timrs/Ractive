@@ -25,6 +25,7 @@ filters = {
 todoList = new Ractive({
 	el: example,
 	template: template,
+	noIntro: true, // disable transitions during initial render
 
 	data: {
 		items: items,

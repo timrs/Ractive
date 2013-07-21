@@ -440,6 +440,10 @@ var cssTransitionsEnabled, transition, transitionend;
 executeTransition = function ( descriptor, root, owner, contextStack, isIntro ) {
 	var transitionName, transitionParams, fragment, transitionManager, transition;
 
+	if ( !root.transitionsEnabled ) {
+		return;
+	}
+
 	if ( typeof descriptor === 'string' ) {
 		transitionName = descriptor;
 	} else {
@@ -1017,6 +1021,11 @@ initFragment = function ( fragment, options ) {
 				fragment.indexRefs[ ref ] = parentRefs[ ref ];
 			}
 		}
+
+		// while we're in this branch, inherit priority
+		fragment.priority = fragment.owner.parentFragment.priority + 1;
+	} else {
+		fragment.priority = 0;
 	}
 
 	if ( options.indexRef ) {
@@ -1054,7 +1063,7 @@ initMustache = function ( mustache, options ) {
 	
 	mustache.descriptor     = options.descriptor;
 	mustache.index          = options.index || 0;
-	mustache.priority       = options.descriptor.p || 0;
+	mustache.priority       = parentFragment.priority;
 
 	// DOM only
 	if ( parentFragment.parentNode ) {
@@ -2674,7 +2683,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	};
 
 	extendable = [ 'data', 'partials', 'transitions', 'eventDefinitions' ];
-	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize' ];
+	inheritable = [ 'el', 'template', 'complete', 'modifyArrays', 'twoway', 'lazy', 'append', 'preserveWhitespace', 'sanitize', 'noIntro', 'transitionsEnabled' ];
 	blacklist = extendable.concat( inheritable );
 
 	inheritFromParent = function ( Child, Parent ) {
@@ -2986,7 +2995,9 @@ defineProperties( defaultOptions, {
 	lazy:               { enumerable: true, value: false },
 	debug:              { enumerable: true, value: false },
 	transitions:        { enumerable: true, value: {}    },
-	eventDefinitions:   { enumerable: true, value: {}    }
+	eventDefinitions:   { enumerable: true, value: {}    },
+	noIntro:            { enumerable: true, value: false },
+	transitionsEnabled: { enumerable: true, value: true  }
 });
 
 Ractive = function ( options ) {
@@ -3162,7 +3173,13 @@ Ractive = function ( options ) {
 		}
 	}
 
+	// temporarily disable transitions, if noIntro flag is set
+	this.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
+
 	render( this, { el: this.el, append: options.append, complete: options.complete });
+
+	// reset transitionsEnabled
+	this.transitionsEnabled = options.transitionsEnabled;
 };
 
 (function () {
@@ -5620,7 +5637,7 @@ splitKeypath =  function ( keypath ) {
 	jsonify;
 
 
-	getFragmentStubFromTokens = function ( tokens, priority, options, preserveWhitespace ) {
+	getFragmentStubFromTokens = function ( tokens, options, preserveWhitespace ) {
 		var parser, stub;
 
 		parser = {
@@ -5632,19 +5649,19 @@ splitKeypath =  function ( keypath ) {
 			options: options
 		};
 
-		stub = new Fragment( parser, priority, preserveWhitespace );
+		stub = new Fragment( parser, preserveWhitespace );
 
 		return stub;
 	};
 
-	getItem = function ( parser, priority, preserveWhitespace ) {
+	getItem = function ( parser, preserveWhitespace ) {
 		if ( !parser.next() ) {
 			return null;
 		}
 
 		return getText( parser, preserveWhitespace )
-		    || getMustache( parser, priority, preserveWhitespace )
-		    || getElement( parser, priority, preserveWhitespace );
+		    || getMustache( parser, preserveWhitespace )
+		    || getElement( parser, preserveWhitespace );
 	};
 
 	getText = function ( parser, preserveWhitespace ) {
@@ -5658,25 +5675,25 @@ splitKeypath =  function ( keypath ) {
 		return null;
 	};
 
-	getMustache = function ( parser, priority, preserveWhitespace ) {
+	getMustache = function ( parser, preserveWhitespace ) {
 		var next = parser.next();
 
 		if ( next.type === MUSTACHE || next.type === TRIPLE ) {
 			if ( next.mustacheType === SECTION || next.mustacheType === INVERTED ) {
-				return new Section( next, parser, priority, preserveWhitespace );				
+				return new Section( next, parser, preserveWhitespace );				
 			}
 
-			return new Mustache( next, parser, priority );
+			return new Mustache( next, parser );
 		}
 
 		return null;
 	};
 
-	getElement = function ( parser, priority, preserveWhitespace ) {
+	getElement = function ( parser, preserveWhitespace ) {
 		var next = parser.next(), stub;
 
 		if ( next.type === TAG ) {
-			stub = new Element( next, parser, priority, preserveWhitespace );
+			stub = new Element( next, parser, preserveWhitespace );
 
 			// sanitize			
 			if ( parser.options.sanitize && parser.options.sanitize.elements ) {
@@ -5730,15 +5747,15 @@ splitKeypath =  function ( keypath ) {
 
 
 
-	Fragment = function ( parser, priority, preserveWhitespace ) {
+	Fragment = function ( parser, preserveWhitespace ) {
 		var items, item;
 
 		items = this.items = [];
 
-		item = getItem( parser, priority, preserveWhitespace );
+		item = getItem( parser, preserveWhitespace );
 		while ( item !== null ) {
 			items[ items.length ] = item;
-			item = getItem( parser, priority, preserveWhitespace );
+			item = getItem( parser, preserveWhitespace );
 		}
 	};
 
@@ -5809,7 +5826,7 @@ splitKeypath =  function ( keypath ) {
 
 	// mustache
 	(function () {
-		Mustache = function ( token, parser, priority ) {
+		Mustache = function ( token, parser ) {
 			this.type = ( token.type === TRIPLE ? TRIPLE : token.mustacheType );
 
 			if ( token.ref ) {
@@ -5819,8 +5836,6 @@ splitKeypath =  function ( keypath ) {
 			if ( token.expression ) {
 				this.expr = new Expression( token.expression );
 			}
-			
-			this.priority = priority;
 
 			parser.pos += 1;
 		};
@@ -5845,10 +5860,6 @@ splitKeypath =  function ( keypath ) {
 					json.x = this.expr.toJson();
 				}
 
-				if ( this.priority ) {
-					json.p = this.priority;
-				}
-
 				this.json = json;
 				return json;
 			},
@@ -5860,12 +5871,11 @@ splitKeypath =  function ( keypath ) {
 		};
 
 
-		Section = function ( firstToken, parser, priority, preserveWhitespace ) {
+		Section = function ( firstToken, parser, preserveWhitespace ) {
 			var next;
 
 			this.ref = firstToken.ref;
 			this.indexRef = firstToken.indexRef;
-			this.priority = priority || 0;
 
 			this.inverted = ( firstToken.mustacheType === INVERTED );
 
@@ -5890,7 +5900,7 @@ splitKeypath =  function ( keypath ) {
 					}
 				}
 
-				this.items[ this.items.length ] = getItem( parser, this.priority + 1, preserveWhitespace );
+				this.items[ this.items.length ] = getItem( parser, preserveWhitespace );
 				next = parser.next();
 			}
 		};
@@ -5925,10 +5935,6 @@ splitKeypath =  function ( keypath ) {
 					json.f = jsonify( this.items, noStringify );
 				}
 
-				if ( this.priority ) {
-					json.p = this.priority;
-				}
-
 				this.json = json;
 				return json;
 			},
@@ -5945,11 +5951,10 @@ splitKeypath =  function ( keypath ) {
 	(function () {
 		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies, filterAttrs, proxyPattern;
 
-		Element = function ( firstToken, parser, priority, preserveWhitespace ) {
+		Element = function ( firstToken, parser, preserveWhitespace ) {
 			var closed, next, i, len, attrs, filtered, proxies, attr, getFrag, processProxy, item;
 
 			this.lcTag = firstToken.name.toLowerCase();
-			this.priority = priority = priority || 0;
 
 			// enforce lower case tag names by default. HTML doesn't care. SVG does, so if we see an SVG tag
 			// that should be camelcased, camelcase it
@@ -5976,7 +5981,7 @@ splitKeypath =  function ( keypath ) {
 
 					return {
 						name: ( svgCamelCaseAttributesMap[ lcName ] ? svgCamelCaseAttributesMap[ lcName ] : lcName ),
-						value: getFragmentStubFromTokens( attr.value, priority + 1 )
+						value: getFragmentStubFromTokens( attr.value )
 					};
 				};
 
@@ -6030,7 +6035,7 @@ splitKeypath =  function ( keypath ) {
 							}
 						}
 
-						processed.dynamicArgs = getFragmentStubFromTokens( tokens, priority + 1 );
+						processed.dynamicArgs = getFragmentStubFromTokens( tokens );
 					}
 
 					return processed;
@@ -6099,7 +6104,7 @@ splitKeypath =  function ( keypath ) {
 					
 				}
 
-				this.items[ this.items.length ] = getItem( parser, this.priority + 1 );
+				this.items[ this.items.length ] = getItem( parser );
 
 				next = parser.next();
 			}
@@ -7993,7 +7998,6 @@ splitKeypath =  function ( keypath ) {
 // * a - map of element Attributes, or proxy event/transition Arguments
 // * d - Dynamic proxy event/transition arguments
 // * n - indicates an iNverted section
-// * p - Priority. Higher priority items are updated before lower ones on model changes
 // * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
 // * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
 // * c - Conditionals (e.g. ['yes', 'no'] in {{condition ? yes : no}})
@@ -8045,7 +8049,7 @@ splitKeypath =  function ( keypath ) {
 			}
 		}
 		
-		fragmentStub = getFragmentStubFromTokens( tokens, 0, options, options.preserveWhitespace );
+		fragmentStub = getFragmentStubFromTokens( tokens, options, options.preserveWhitespace );
 		
 		json = fragmentStub.toJson();
 
