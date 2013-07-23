@@ -55,7 +55,8 @@ ractive = new Ractive({
 
 
 // because we're using SVG, we need to manually redraw
-// when the container resizes
+// when the container resizes. You *can* use percentages
+// instead of pixel/em lengths, but not in transforms
 resize = function () {
 	var width, height;
 
