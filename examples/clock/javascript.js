@@ -4,7 +4,7 @@ var ractive = new Ractive({
 	template: template,
 	data: {
 		date: new Date(),
-		days: [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ],
+		days: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ],
 		months: [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ],
 		
 		// add suffix to numbers, e.g. 2 -> '2nd', 14 -> '14th'
