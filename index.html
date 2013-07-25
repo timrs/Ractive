@@ -214,12 +214,12 @@ var ractive = new Ractive({
 				consoleBlock = el.querySelector( '.console' );
 				run = el.querySelector( '.run' );
 
-				codeToExecute = 'var result = window.demo_' + id + ',html="' + templateBlock.innerText.replace( /\r?\n/g, ' ' ) + '";' + codeBlock.innerText + ';window.ractive_' + id + '=ractive;';
+				codeToExecute = 'var result = window.demo_' + id + ',html="' + ( templateBlock.textContent || templateBlock.innerText ).replace( /\r?\n/g, ' ' ) + '";' + ( codeBlock.textContent || codeBlock.innerText ) + ';window.ractive_' + id + '=ractive;';
 
 				eval( codeToExecute );
 
 				runConsoleCode = function () {
-					codeToExecute = 'var ractive = window.ractive_' + id + ';' + consoleBlock.innerText;
+					codeToExecute = 'var ractive = window.ractive_' + id + ';' + ( consoleBlock.textContent || consoleBlock.innerText );
 
 
 					
