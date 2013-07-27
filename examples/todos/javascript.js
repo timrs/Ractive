@@ -8,9 +8,20 @@ sampleItems = [
 	{ description: 'Build something with Ractive.js' }
 ];
 
-if ( window.localStorage ) {
-	items = JSON.parse( window.localStorage.getItem( 'ractive-todos' ) ) || sampleItems;
-} else {
+// Load data from localStorage. FF will throw a SecurityError if you try
+// to access localStorage with cookies disabled, so we try-catch
+try {
+	if ( window.localStorage ) {
+		items = JSON.parse( window.localStorage.getItem( 'ractive-todos' ) ) || sampleItems;
+	} else {
+		items = sampleItems;
+	}
+} catch ( err ) {
+	// overwrite localStorage so we don't need to try-catch later
+	window.localStorage = {
+		setItem: function () {} // noop
+	};
+
 	items = sampleItems;
 }
 
