@@ -141,6 +141,7 @@ OBJECT_LITERAL    = 23,
 BOOLEAN_LITERAL   = 24,
 LITERAL           = 25,
 GLOBAL            = 26,
+KEY_VALUE_PAIR    = 27,
 
 
 REFERENCE         = 30,
@@ -780,7 +781,7 @@ insertHtml = function ( html, docFrag ) {
 	getFunctionFromString = function ( str, i ) {
 		var fn, args;
 
-		str = str.replace( /❖/g, '_' );
+		str = str.replace( /\$\{([0-9]+)\}/g, '_$1' );
 
 		if ( cache[ str ] ) {
 			return cache[ str ];
@@ -918,7 +919,7 @@ insertHtml = function ( html, docFrag ) {
 		var unique;
 
 		// get string that is unique to this expression
-		unique = str.replace( /❖([0-9]+)/g, function ( match, $1 ) {
+		unique = str.replace( /\$\{([0-9]+)\}/g, function ( match, $1 ) {
 			return args[ $1 ][1];
 		});
 
@@ -5015,6 +5016,10 @@ DomPartial = function ( options, docFrag ) {
 };
 
 DomPartial.prototype = {
+	firstNode: function () {
+		return this.fragment.firstNode();
+	},
+
 	findNextNode: function () {
 		return this.parentFragment.findNextNode( this );
 	},
@@ -6468,7 +6473,7 @@ splitKeypath =  function ( keypath ) {
 	// expression
 	(function () {
 
-		var getRefs, stringify;
+		var getRefs, stringify, stringifyKey, identifier;
 
 		Expression = function ( token ) {
 			this.refs = [];
@@ -6489,7 +6494,7 @@ splitKeypath =  function ( keypath ) {
 
 		// TODO maybe refactor this?
 		getRefs = function ( token, refs ) {
-			var i;
+			var i, list;
 
 			if ( token.t === REFERENCE ) {
 				if ( refs.indexOf( token.n ) === -1 ) {
@@ -6497,13 +6502,14 @@ splitKeypath =  function ( keypath ) {
 				}
 			}
 
-			if ( token.o ) {
-				if ( isObject( token.o ) ) {
-					getRefs( token.o, refs );
+			list = token.o || token.m;
+			if ( list ) {
+				if ( isObject( list ) ) {
+					getRefs( list, refs );
 				} else {
-					i = token.o.length;
+					i = list.length;
 					while ( i-- ) {
-						getRefs( token.o[i], refs );
+						getRefs( list[i], refs );
 					}
 				}
 			}
@@ -6514,6 +6520,10 @@ splitKeypath =  function ( keypath ) {
 
 			if ( token.r ) {
 				getRefs( token.r, refs );
+			}
+
+			if ( token.v ) {
+				getRefs( token.v, refs );
 			}
 		};
 
@@ -6533,7 +6543,13 @@ splitKeypath =  function ( keypath ) {
 				return "'" + token.v.replace( /'/g, "\\'" ) + "'";
 
 				case ARRAY_LITERAL:
-				return '[' + token.m.map( map ).join( ',' ) + ']';
+				return '[' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + ']';
+
+				case OBJECT_LITERAL:
+				return '{' + ( token.m ? token.m.map( map ).join( ',' ) : '' ) + '}';
+
+				case KEY_VALUE_PAIR:
+				return stringifyKey( token.k ) + ':' + stringify( token.v, refs );
 
 				case PREFIX_OPERATOR:
 				return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
@@ -6557,12 +6573,28 @@ splitKeypath =  function ( keypath ) {
 				return stringify( token.o[0], refs ) + '?' + stringify( token.o[1], refs ) + ':' + stringify( token.o[2], refs );
 
 				case REFERENCE:
-				return '❖' + refs.indexOf( token.n );
+				return '${' + refs.indexOf( token.n ) + '}';
 
 				default:
+				console.log( token );
 				throw new Error( 'Could not stringify expression token. This error is unexpected' );
 			}
 		};
+
+		stringifyKey = function ( key ) {
+			if ( key.t === STRING_LITERAL ) {
+				return identifier.test( key.v ) ? key.v : '"' + key.v.replace( /"/g, '\\"' ) + '"';
+			}
+
+			if ( key.t === NUMBER_LITERAL ) {
+				return key.v;
+			}
+
+			return key;
+		};
+
+		identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+
 	}());
 
 }());
@@ -7804,7 +7836,7 @@ splitKeypath =  function ( keypath ) {
 
 			return {
 				t: ARRAY_LITERAL,
-				o: expressionList
+				m: expressionList
 			};
 		};
 
