@@ -4,6 +4,9 @@
 
 var Ractive,
 
+// current version
+VERSION = '0.3.4',
+
 doc = global.document || null,
 
 // Ractive prototype
@@ -167,11 +170,7 @@ namespaces = {
 	xlink:  'http://www.w3.org/1999/xlink',
 	xml:    'http://www.w3.org/XML/1998/namespace',
 	xmlns:  'http://www.w3.org/2000/xmlns/'
-},
-
-
-// current version
-VERSION = '0.3.3';
+};
 
 
 
@@ -2513,13 +2512,13 @@ eventDefinitions.hover = function ( node, fire ) {
 		});
 	};
 
-	node.addEventListener( 'mouseover', mouseoverHandler );
-	node.addEventListener( 'mouseout', mouseoutHandler );
+	node.addEventListener( 'mouseover', mouseoverHandler, false );
+	node.addEventListener( 'mouseout', mouseoutHandler, false );
 
 	return {
 		teardown: function () {
-			node.removeEventListener( 'mouseover', mouseoverHandler );
-			node.removeEventListener( 'mouseout', mouseoutHandler );
+			node.removeEventListener( 'mouseover', mouseoverHandler, false );
+			node.removeEventListener( 'mouseout', mouseoutHandler, false );
 		}
 	};
 };
@@ -2540,11 +2539,11 @@ eventDefinitions.hover = function ( node, fire ) {
 						original: event
 					});
 				}
-			});
+			}, false );
 
 			return {
 				teardown: function () {
-					node.removeEventListener( keydownHandler );
+					node.removeEventListener( 'keydown', keydownHandler, false );
 				}
 			};
 		};
@@ -2589,17 +2588,17 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		cancel = function () {
-			doc.removeEventListener( 'mousemove', move );
-			doc.removeEventListener( 'click', up );
+			node.removeEventListener( 'click', up, false );
+			doc.removeEventListener( 'mousemove', move, false );
 		};
 
-		doc.addEventListener( 'mousemove', move );
-		doc.addEventListener( 'click', up );
+		node.addEventListener( 'click', up, false );
+		doc.addEventListener( 'mousemove', move, false );
 
 		setTimeout( cancel, timeThreshold );
 	};
 
-	node.addEventListener( 'mousedown', mousedown );
+	node.addEventListener( 'mousedown', mousedown, false );
 
 
 	touchstart = function ( event ) {
@@ -2648,25 +2647,25 @@ eventDefinitions.tap = function ( node, fire ) {
 		};
 
 		cancel = function () {
-			window.removeEventListener( 'touchmove', move );
-			window.removeEventListener( 'touchend', up );
-			window.removeEventListener( 'touchcancel', cancel );
+			node.removeEventListener( 'touchend', up, false );
+			window.removeEventListener( 'touchmove', move, false );
+			window.removeEventListener( 'touchcancel', cancel, false );
 		};
 
-		window.addEventListener( 'touchmove', move );
-		window.addEventListener( 'touchend', up );
-		window.addEventListener( 'touchcancel', cancel );
+		node.addEventListener( 'touchend', up, false );
+		window.addEventListener( 'touchmove', move, false );
+		window.addEventListener( 'touchcancel', cancel, false );
 
 		setTimeout( cancel, timeThreshold );
 	};
 
-	node.addEventListener( 'touchstart', touchstart );
+	node.addEventListener( 'touchstart', touchstart, false );
 
 
 	return {
 		teardown: function () {
-			node.removeEventListener( 'mousedown', mousedown );
-			node.removeEventListener( 'touchstart', touchstart );
+			node.removeEventListener( 'mousedown', mousedown, false );
+			node.removeEventListener( 'touchstart', touchstart, false );
 		}
 	};
 };
@@ -3355,7 +3354,7 @@ Ractive = function ( options ) {
 					node.style[ transition + 'TimingFunction' ] = easing;
 
 					transitionEndHandler = function ( event ) {
-						node.removeEventListener( transitionend, transitionEndHandler );
+						node.removeEventListener( transitionend, transitionEndHandler, false );
 
 						if ( isIntro ) {
 							node.setAttribute( 'style', originalStyle || '' );
@@ -3364,7 +3363,7 @@ Ractive = function ( options ) {
 						complete();
 					};
 					
-					node.addEventListener( transitionend, transitionEndHandler );
+					node.addEventListener( transitionend, transitionEndHandler, false );
 
 					setStyle( node, properties, end, params );
 				};
@@ -4289,7 +4288,7 @@ animationCollection = {
 
 				i = this.boundEvents.length;
 				while ( i-- ) {
-					node.addEventListener( this.boundEvents[i], this.updateViewModel );
+					node.addEventListener( this.boundEvents[i], this.updateViewModel, false );
 				}
 			}
 		},
@@ -4314,7 +4313,7 @@ animationCollection = {
 				i = this.boundEvents.length;
 
 				while ( i-- ) {
-					this.parentNode.removeEventListener( this.boundEvents[i], this.updateViewModel );
+					this.parentNode.removeEventListener( this.boundEvents[i], this.updateViewModel, false );
 				}
 			}
 
@@ -4868,7 +4867,7 @@ DomElement.prototype = {
 			h: handler
 		};
 
-		this.node.addEventListener( triggerEventName, handler );
+		this.node.addEventListener( triggerEventName, handler, false );
 	},
 
 	teardown: function ( detach ) {
@@ -4886,7 +4885,7 @@ DomElement.prototype = {
 
 		while ( self.eventListeners.length ) {
 			listener = self.eventListeners.pop();
-			self.node.removeEventListener( listener.n, listener.h );
+			self.node.removeEventListener( listener.n, listener.h, false );
 		}
 
 		while ( self.customEventListeners.length ) {
@@ -6102,7 +6101,21 @@ splitKeypath =  function ( keypath ) {
 
 	// element
 	(function () {
-		var voidElementNames, allElementNames, mapToLowerCase, svgCamelCaseElements, svgCamelCaseElementsMap, svgCamelCaseAttributes, svgCamelCaseAttributesMap, closedByParentClose, siblingsByTagName, sanitize, onlyAttrs, onlyProxies, filterAttrs, proxyPattern;
+		var voidElementNames,
+			allElementNames,
+			mapToLowerCase,
+			svgCamelCaseElements,
+			svgCamelCaseElementsMap,
+			svgCamelCaseAttributes,
+			svgCamelCaseAttributesMap,
+			closedByParentClose,
+			siblingsByTagName,
+			onPattern,
+			sanitize,
+			onlyAttrs,
+			onlyProxies,
+			filterAttrs,
+			proxyPattern;
 
 		Element = function ( firstToken, parser, preserveWhitespace ) {
 			var closed, next, i, len, attrs, filtered, proxies, attr, getFrag, processProxy, item;
@@ -6507,20 +6520,12 @@ splitKeypath =  function ( keypath ) {
 			th: [ 'td', 'th' ]
 		};
 
+		onPattern = /^on[a-zA-Z]/;
+
 		sanitize = function ( attr ) {
-			return attr.name.substr( 0, 2 ) !== 'on';
-		};
-
-		onlyAttrs = function ( attr ) {
-			return attr.name.substr( 0, 6 ) !== 'proxy-';
-		};
-
-		onlyProxies = function ( attr ) {
-			if ( attr.name.substr( 0, 6 ) === 'proxy-' ) {
-				attr.name = attr.name.substring( 6 );
-				return true;
-			}
-			return false;
+			var valid = !onPattern.test( attr.name );
+			console.log( '%s valid?', attr.name, valid );
+			return !onPattern.test( attr.name );
 		};
 
 		filterAttrs = function ( items ) {
@@ -6552,6 +6557,11 @@ splitKeypath =  function ( keypath ) {
 				// Proxy?
 				else if ( item.name.substr( 0, 6 ) === 'proxy-' ) {
 					item.name = item.name.substring( 6 );
+					proxies[ proxies.length ] = item;
+				}
+
+				else if ( item.name.substr( 0, 3 ) === 'on-' ) {
+					item.name = item.name.substring( 3 );
 					proxies[ proxies.length ] = item;
 				}
 
@@ -7032,14 +7042,14 @@ splitKeypath =  function ( keypath ) {
 			content = getDelimiterChange( tokenizer );
 			if ( content ) {
 				// find closing delimiter or abort...
-				if ( !getStringMatch( tokenizer, tokenizer.delimiters[1] ) ) {
+				if ( !getStringMatch( tokenizer, tokenizer.tripleDelimiters[1] ) ) {
 					tokenizer.pos = start;
 					return null;
 				}
 
 				// ...then make the switch
 				tokenizer.tripleDelimiters = content;
-				return { type: DELIMCHANGE };
+				return { type: MUSTACHE, mustacheType: DELIMCHANGE };
 			}
 
 			// allow whitespace between opening delimiter and reference
@@ -8317,7 +8327,7 @@ tokenize = function ( template, options ) {
 
 	stripStandalones( tokens );
 	stripCommentTokens( tokens );
-	
+
 	return tokens;
 };
 Ractive.prototype = proto;
