@@ -5,9 +5,9 @@
 	
 	<div class='rating'>
 		{{#stars:i}}
-			<span class='star {{( rating > i ? "selected" : "" )}} {{( highlight > i ? "highlighted" : "" )}}'
-			      proxy-tap='select:{{( i+1 )}}'
-			      proxy-hover='highlight:{{( i+1 )}}'
+			<span class='star {{ rating > i ? "selected" : "" }} {{ highlight > i ? "highlighted" : "" }}'
+			      proxy-tap='select:{{ i+1 }}'
+			      proxy-hover='highlight:{{ i+1 }}'
 			>&#9733;</span>
 		{{/stars}}
 	</div>
@@ -16,7 +16,7 @@
 	
 	<div class='rating readonly'>
 		{{#stars:i}}
-			<span class='star {{( rating > i ? "selected" : "" )}}'>&#9733;</span>
+			<span class='star {{ rating > i ? "selected" : "" }}'>&#9733;</span>
 		{{/stars}}
 	</div>
 </div>

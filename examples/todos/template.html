@@ -14,7 +14,7 @@
 				id='toggle-all'
 				type='checkbox'
 				proxy-click-change='toggle_all'
-				checked='{{( items.length === numCompleted )}}'
+				checked='{{ items.length === numCompleted }}'
 				intro='fade'
 				outro='fade'
 			>
@@ -22,37 +22,21 @@
 			<!-- the actual list -->
 			<ul id='todo-list'>
 				{{#items:i}}
-					<!--{{>item}} <!-- the item partial is defined below -->
-
-					{{#( filter( (.), currentFilter ))}}
-					<li intro='slide:fast' outro='slide:fast' class='{{( .completed ? "completed" : "" )}} {{( editing ? "editing" : "" )}}'>
-						<div class='view'>
-							<input class='toggle' type='checkbox' checked='{{.completed}}'>
-							<label proxy-dblclick='edit'>{{description}}</label>
-							<button proxy-tap='remove:{{i}}' class='destroy'></button>
-						</div>
-
-						{{#.editing}}
-							<div class='edit-container'>
-								<input intro='select' class='edit' value='{{description}}' proxy-blur-enter='submit'>
-							</div>
-						{{/.editing}}
-					</li>
-					{{/()}}
+					{{>item}}
 				{{/items}}
 			</ul>
 		</section>
 
 		<div id='footer' intro='fade' outro='slide'>
 			<span id='todo-count'>
-				<strong>{{ numActive }}</strong> {{( numActive === 1 ? 'item' : 'items' )}} left
+				<strong>{{ numActive }}</strong> {{ numActive === 1 ? 'item' : 'items' }} left
 			</span>
 			
 			<!-- switch filters -->
 			<ul id='filters'>
-				<li class='{{( currentFilter === "all" ? "selected" : "" )}}' proxy-tap='set_filter:all'>All</li>
-				<li class='{{( currentFilter === "active" ? "selected" : "" )}}' proxy-tap='set_filter:active'>Active</li>
-				<li class='{{( currentFilter === "completed" ? "selected" : "" )}}' proxy-tap='set_filter:completed'>Completed</li>
+				<li class='{{ currentFilter === "all" ? "selected" : "" }}' proxy-tap='set_filter:all'>All</li>
+				<li class='{{ currentFilter === "active" ? "selected" : "" }}' proxy-tap='set_filter:active'>Active</li>
+				<li class='{{ currentFilter === "completed" ? "selected" : "" }}' proxy-tap='set_filter:completed'>Completed</li>
 			</ul>
 
 			<!-- hidden if no completed items are left -->
@@ -64,23 +48,23 @@
 		</div>
 	{{/items.length}}
 
-
-	<!-- {{>item}} -->
-	{{#( filter( (.), currentFilter ))}}
-	<li intro='slide:fast' outro='slide:fast' class='{{( completed ? "completed" : "" )}} {{( editing ? "editing" : "" )}}'>
-		<div class='view'>
-			<input class='toggle' type='checkbox' checked='{{completed}}'>
-			<label proxy-dblclick='edit'>{{description}}</label>
-			<button proxy-tap='remove:{{i}}' class='destroy'></button>
-		</div>
-
-		{{#.editing}}
-			<div class='edit-container'>
-				<input intro='select' class='edit' value='{{description}}' proxy-blur-enter='submit'>
-			</div>
-		{{/.editing}}
-	</li>
-	{{/()}}
-<!-- {{/item}} -->
-
 </div>
+
+
+<!-- {{>item}} -->
+{{# filter( (.), currentFilter }}
+<li intro='slide:fast' outro='slide:fast' class='{{ completed ? "completed" : "" }} {{ editing ? "editing" : "" }}'>
+	<div class='view'>
+		<input class='toggle' type='checkbox' checked='{{completed}}'>
+		<label proxy-dblclick='edit'>{{description}}</label>
+		<button proxy-tap='remove:{{i}}' class='destroy'></button>
+	</div>
+
+	{{#.editing}}
+		<div class='edit-container'>
+			<input intro='select' class='edit' value='{{description}}' proxy-blur-enter='submit'>
+		</div>
+	{{/.editing}}
+</li>
+{{/ end of todo item }}
+<!-- {{/item}} -->

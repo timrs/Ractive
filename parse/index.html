@@ -92,60 +92,8 @@
 	<script src='../lib/Divvy.js'></script>
 
 	<script>
-		var ractive, fillGapsInFragment, fillGapsInItem, properties, stringifyExpression;
+		var ractive, stringifyExpression;
 
-
-		fillGapsInFragment = function ( fragment ) {
-			var filled, i;
-
-			if ( typeof fragment === 'string' ) {
-				return fillGapsInFragment([{
-					t: 1,
-					s: fragment
-				}]);
-			}
-
-			filled = [];
-
-			i = fragment.length;
-			while ( i-- ) {
-				filled[i] = fillGapsInItem( fragment[i] );
-			}
-
-			return filled;
-		};
-
-		properties = 'r t e a n p i v c x s'.split( ' ' );
-
-		fillGapsInItem = function ( item ) {
-			var filled, i;
-
-			if ( typeof item === 'string' ) {
-				return fillGapsInItem({
-					t: 1,
-					s: item
-				});
-			}
-
-			i = properties.length;
-			filled = {};
-
-			while ( i-- ) {
-				if ( item.hasOwnProperty( properties[i] ) ) {
-					filled[ properties[i] ] = item[ properties[i] ];
-				} else {
-					filled[ properties[i] ] = null;
-				}
-			}
-
-			if ( item.f ) {
-				filled.f = fillGapsInFragment( item.f );
-			} else {
-				filled.f = [];
-			}
-
-			return filled;
-		};
 
 		stringifyExpression = function ( expr ) {
 			return expr.s.replace( /❖([0-9]+)/g, function ( match, $1 ) {
@@ -167,14 +115,6 @@
 						}
 
 						return JSON.stringify( parsed, null, indent ? '  ' : '' );
-					},
-					types: {
-						1: 'text',
-						2: 'interpolator',
-						3: 'triple',
-						4: 'section',
-						7: 'element',
-						8: 'partial'
 					},
 					toArray: function ( obj ) {
 						var arr = [], name;
@@ -250,22 +190,17 @@
 				}
 
 				parsed = Ractive.parse( input );
-
-				//console.log( 'clearing' );
-				//this.set( 'f', null, function () {
-					console.log( 'filling' );
-					ractive.set({
-						parsed: parsed,
-						//f: fillGapsInFragment( parsed )
-						f: parsed
-					});
-				//});
+			
+				ractive.set({
+					parsed: parsed,
+					f: parsed
+				});
 			});
 
-			ractive.on( 'toggle', function ( event, el ) {
+			ractive.on( 'toggle', function ( event ) {
 				var container, ul;
 
-				container = el.parentNode;
+				container = event.node.parentNode;
 				ul = container.querySelector( 'ul' );
 
 				if ( container.classList.contains( 'visible' ) ) {

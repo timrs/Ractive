@@ -3,7 +3,7 @@
 <div class='scroller' proxy-scroll='scroll'>
 	{{#newer.length}}
 		<a class='newer' proxy-tap='showNewer' intro='slide'>
-			Show {{newer.length}} new {{( newer.length === 1 ? "post" : "posts" )}}
+			Show {{newer.length}} new {{ newer.length === 1 ? "post" : "posts" }}
 		</a>
 	{{/newer.length}}
 
