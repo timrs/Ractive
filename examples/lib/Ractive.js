@@ -7095,7 +7095,6 @@ splitKeypath =  function ( keypath ) {
 			expr = getExpression( tokenizer );
 
 			while ( expr.t === BRACKETED && expr.x ) {
-				console.log( expr, ' -> ', expr.x );
 				expr = expr.x;
 			}
 
