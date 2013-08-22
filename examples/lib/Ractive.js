@@ -5,7 +5,7 @@
 var Ractive,
 
 // current version
-VERSION = '0.3.5',
+VERSION = '0.3.6',
 
 doc = global.document || null,
 
@@ -609,8 +609,10 @@ var cssTransitionsEnabled, transition, transitionend;
 			}
 
 			if ( changed = true ) {
+				attribute.receiving = true;
 				attribute.value = value;
 				this.root.set( this.keypath, value );
+				attribute.receiving = false;
 			}
 		},
 
@@ -636,8 +638,10 @@ var cssTransitionsEnabled, transition, transitionend;
 
 			value = selectedOption._ractive.value;
 
+			this.attr.receiving = true;
 			this.attr.value = value;
 			this.root.set( this.keypath, value );
+			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -662,7 +666,9 @@ var cssTransitionsEnabled, transition, transitionend;
 			var node = this.node;
 
 			if ( node.checked ) {
+				this.attr.receiving = true;
 				this.root.set( this.keypath, node._ractive ? node._ractive.value : node.value );
+				this.attr.receiving = false;
 			}
 		},
 
@@ -706,7 +712,9 @@ var cssTransitionsEnabled, transition, transitionend;
 			}
 
 			if ( !arrayContentsMatch( previousValue, value ) ) {
+				this.attr.receiving = true;
 				this.root.set( this.keypath, value );
+				this.attr.receiving = false;
 			}
 		},
 
@@ -728,7 +736,9 @@ var cssTransitionsEnabled, transition, transitionend;
 
 	CheckedBinding.prototype = {
 		update: function () {
+			this.attr.receiving = true;
 			this.root.set( this.keypath, this.node.checked );
+			this.attr.receiving = false;
 		},
 
 		teardown: function () {
@@ -771,16 +781,14 @@ var cssTransitionsEnabled, transition, transitionend;
 		update: function () {
 			var attribute = this.attr, value = attribute.parentNode.value;
 
-			// so that we can do +value || value below
-			if ( value === '0' ) {
-				value = 0;
+			// if the value is numeric, treat it as a number. otherwise don't
+			if ( ( +value + '' === value ) && value.indexOf( 'e' ) === -1 ) {
+				value = +value;
 			}
 
-			else if ( value !== '' ) {
-				value = +value || value;
-			}
-
+			attribute.receiving = true;
 			attribute.root.set( attribute.keypath, value );
+			attribute.receiving = false;
 		},
 
 		teardown: function () {
@@ -971,8 +979,13 @@ var cssTransitionsEnabled, transition, transitionend;
 
 		if ( value !== this.value ) {
 			if ( this.useProperty ) {
+
+				// with two-way binding, only update if the change wasn't initiated by the user
+				// otherwise the cursor will often be sent to the wrong place
+				if ( !this.receiving ) {
+					node[ this.propertyName ] = value;
+				}
 				
-				node[ this.propertyName ] = value;
 				this.value = value;
 
 				return this;
@@ -2771,8 +2784,6 @@ proto.fire = function ( eventName ) {
 
 		if ( descriptor ) {
 			if ( descriptor.set && ( ractives = descriptor.set.ractives ) ) {
-				console.log( 'here' );
-
 				// register this ractive to this object
 				if ( ractives.indexOf( ractive ) === -1 ) {
 					ractives[ ractives.length ] = ractive;
@@ -3897,7 +3908,7 @@ eventDefinitions.tap = function ( node, fire ) {
 	mousedown = function ( event ) {
 		var currentTarget, x, y, pointerId, up, move, cancel;
 
-		if ( event.which != 1) {
+		if ( event.which !== undefined && event.which !== 1 ) {
 			return;
 		}
 
@@ -4029,6 +4040,8 @@ eventDefinitions.tap = function ( node, fire ) {
 
 	return {
 		teardown: function () {
+			node.removeEventListener( 'pointerdown', mousedown, false );
+			node.removeEventListener( 'MSPointerDown', mousedown, false );
 			node.removeEventListener( 'mousedown', mousedown, false );
 			node.removeEventListener( 'touchstart', touchstart, false );
 		}
@@ -7511,7 +7524,7 @@ var ExpressionStub;
 			return ( token.s === 'typeof' ? 'typeof ' : token.s ) + stringify( token.o, refs );
 
 			case INFIX_OPERATOR:
-			return stringify( token.o[0], refs ) + token.s + stringify( token.o[1], refs );
+			return stringify( token.o[0], refs ) + ( token.s.substr( 0, 2 ) === 'in' ? ' ' + token.s + ' ' : token.s ) + stringify( token.o[1], refs );
 
 			case INVOCATION:
 			return stringify( token.x, refs ) + '(' + ( token.o ? token.o.map( map ).join( ',' ) : '' ) + ')';
@@ -8049,6 +8062,12 @@ var getExpression;
 				return left;
 			}
 
+			// special case - in operator must not be followed by [a-zA-Z_$0-9]
+			if ( symbol === 'in' && /[a-zA-Z_$0-9]/.test( tokenizer.remaining().charAt( 0 ) ) ) {
+				tokenizer.pos = start;
+				return left;
+			}
+
 			allowWhitespace( tokenizer );
 
 			right = getExpression( tokenizer );
@@ -8155,6 +8174,7 @@ var getExpression;
 		// allow the use of `this`
 		if ( name === 'this' ) {
 			name = '.';
+			startPos += 3; // horrible hack to allow method invocations with `this` by ensuring combo.length is right!
 		}
 
 		combo = dot + name;
