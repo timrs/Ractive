@@ -55,7 +55,7 @@
 {{# filter( (.), currentFilter ) }}
 <li intro='slide:fast' outro='slide:fast' class='{{ completed ? "completed" : "" }} {{ editing ? "editing" : "" }}'>
 	<div class='view'>
-		<input class='toggle' type='checkbox' checked='{{completed}}'>
+		<input class='toggle' type='checkbox' checked='{{.completed}}'>
 		<label proxy-dblclick='edit'>{{description}}</label>
 		<button proxy-tap='remove:{{i}}' class='destroy'></button>
 	</div>
