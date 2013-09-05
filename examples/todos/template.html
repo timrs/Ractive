@@ -2,7 +2,7 @@
 
 	<header id='header'>
 		<!-- we bind to the custom 'enter' event as well as 'change', for the benefit of IE -->
-		<input id='new-todo' proxy-enter-change='new_todo' placeholder='What needs to be done?' autofocus>
+		<input id='new-todo' on-enter-change='new_todo' placeholder='What needs to be done?' autofocus>
 	</header>
 
 	{{#items.length}} <!-- only show when there are one or more items -->
@@ -13,7 +13,7 @@
 			<input
 				id='toggle-all'
 				type='checkbox'
-				proxy-click-change='toggle_all'
+				on-click-change='toggle_all'
 				checked='{{ items.length === numCompleted }}'
 				intro='fade'
 				outro='fade'
@@ -34,14 +34,14 @@
 			
 			<!-- switch filters -->
 			<ul id='filters'>
-				<li class='{{ currentFilter === "all" ? "selected" : "" }}' proxy-tap='set_filter:all'>All</li>
-				<li class='{{ currentFilter === "active" ? "selected" : "" }}' proxy-tap='set_filter:active'>Active</li>
-				<li class='{{ currentFilter === "completed" ? "selected" : "" }}' proxy-tap='set_filter:completed'>Completed</li>
+				<li class='{{ currentFilter === "all" ? "selected" : "" }}' on-tap='set_filter:all'>All</li>
+				<li class='{{ currentFilter === "active" ? "selected" : "" }}' on-tap='set_filter:active'>Active</li>
+				<li class='{{ currentFilter === "completed" ? "selected" : "" }}' on-tap='set_filter:completed'>Completed</li>
 			</ul>
 
 			<!-- hidden if no completed items are left -->
 			{{# numCompleted }}
-				<button id='clear-completed' proxy-tap='clear_completed'>
+				<button id='clear-completed' on-tap='clear_completed'>
 					Clear completed ({{ numCompleted }})
 				</button>
 			{{/ numCompleted }}
@@ -56,13 +56,13 @@
 <li intro='slide:fast' outro='slide:fast' class='{{ completed ? "completed" : "" }} {{ editing ? "editing" : "" }}'>
 	<div class='view'>
 		<input class='toggle' type='checkbox' checked='{{.completed}}'>
-		<label proxy-dblclick='edit'>{{description}}</label>
-		<button proxy-tap='remove:{{i}}' class='destroy'></button>
+		<label on-dblclick='edit'>{{description}}</label>
+		<button on-tap='remove:{{i}}' class='destroy'></button>
 	</div>
 
 	{{#.editing}}
 		<div class='edit-container'>
-			<input intro='select' class='edit' value='{{description}}' proxy-blur-enter='submit'>
+			<input intro='select' class='edit' value='{{description}}' on-blur-enter='submit'>
 		</div>
 	{{/.editing}}
 </li>

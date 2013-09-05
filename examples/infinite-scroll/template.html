@@ -1,8 +1,8 @@
 <!-- General purpose, reusable infinite scroll template -->
 
-<div class='scroller' proxy-scroll='scroll'>
+<div class='scroller' on-scroll='scroll'>
 	{{#newer.length}}
-		<a class='newer' proxy-tap='showNewer' intro='slide'>
+		<a class='newer' on-tap='showNewer' intro='slide'>
 			Show {{newer.length}} new {{ newer.length === 1 ? "post" : "posts" }}
 		</a>
 	{{/newer.length}}

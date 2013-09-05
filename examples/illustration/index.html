@@ -39,10 +39,10 @@
 
 	<script id='infoTemplate' type='ractive'>
 		<div class='controls'>
-			<span proxy-tap='select:readme'     class='tab {{ selected === "readme"     ? "selected" : "" }}'>readme</span>
-			<span proxy-tap='select:template'   class='tab {{ selected === "template"   ? "selected" : "" }}'>template</span>
-			<span proxy-tap='select:javascript' class='tab {{ selected === "javascript" ? "selected" : "" }}'>javascript</span>
-			<span proxy-tap='select:css'        class='tab {{ selected === "css"        ? "selected" : "" }}'>css</span>
+			<span on-tap='select:readme'     class='tab {{ selected === "readme"     ? "selected" : "" }}'>readme</span>
+			<span on-tap='select:template'   class='tab {{ selected === "template"   ? "selected" : "" }}'>template</span>
+			<span on-tap='select:javascript' class='tab {{ selected === "javascript" ? "selected" : "" }}'>javascript</span>
+			<span on-tap='select:css'        class='tab {{ selected === "css"        ? "selected" : "" }}'>css</span>
 		</div>
 
 		<div class='wrapper'>

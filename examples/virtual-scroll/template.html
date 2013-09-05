@@ -3,12 +3,12 @@
 <p class='status'>Posts in stream: <strong>{{allPosts.length}}</strong> / in DOM: <strong>{{renderedPosts.length}}</strong></p>
 
 {{#newer.length}}
-	<a class='newer' proxy-tap='showNewer' intro='slide'>
+	<a class='newer' on-tap='showNewer' intro='slide'>
 		Show {{newer.length}} new {{ newer.length === 1 ? "post" : "posts" }}
 	</a>
 {{/newer.length}}
 
-<div class='scroller' proxy-scroll='scroll'>
+<div class='scroller' on-scroll='scroll'>
 	<div class='stream'>
 		<div class='before' style='height: {{paddingBefore}}px;'></div>
 
