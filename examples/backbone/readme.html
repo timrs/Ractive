@@ -2,7 +2,7 @@
 
 <p>That's handy, but sometimes it's not enough &ndash; maybe you want to use Backbone (for example) Models and Collections in your app, but you still want to use Ractive to render your interface.</p>
 
-<p>In these situations, we use <em>adaptors</em>. Adaptors are small plugins that allow Ractive to communicate seamlessly with third-party model libraries. In the example above, we're using the <a href='TODO'>Backbone adaptor</a>. We have a variety of model types (<code>Film</code>, <code>Actor</code> and <code>Director</code>) and a collection type (<code>Films</code>).</p>
+<p>In these situations, we use <em>adaptors</em>. Adaptors are small plugins that allow Ractive to communicate seamlessly with third-party model libraries. In the example above, we're using the <a href='https://github.com/Rich-Harris/Ractive/blob/master/plugins/adaptors/Backbone.js'>Backbone adaptor</a>. We have a variety of model types (<code>Film</code>, <code>Actor</code> and <code>Director</code>) and a collection type (<code>Films</code>).</p>
 
 <p>As Ractive builds up the view, any time it encounters an instance of a Backbone Model, it does two things. Firstly, it wraps the object so that you can do <code>film.title</code> in your template (rather than <code>film.get( 'title' )</code> or <code>film.attributes.title</code>). Secondly, it adds a handler to the model's <code>change</code> event, so that changes in the model are reflected in the view. This binding works in both directions &ndash; changes in the view will also be reflected in the model, where appropriate.</p>
 
@@ -18,4 +18,4 @@
 
 <p>Notice also that within the <code>highlight</code> event handler, we're using the <code>set</code> event on the Backbone object rather than on Ractive, which is a more object-oriented approach if that's your bag.</p>
 
-<p>You'll find more information about adaptors, including how to create your own, on the <a href='TODO'>wiki</a>.</p>
+<p>You'll find more information about adaptors, including how to create your own, on the <a href='https://github.com/Rich-Harris/Ractive/wiki/Ractive.adaptors'>wiki</a>.</p>
