@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-10-04
+/*! Ractive - v0.3.7 - 2013-10-07
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -11,7 +11,7 @@
 var Ractive,
 
 // current version
-VERSION = '0.3.6',
+VERSION = '0.3.7',
 
 doc = global.document || null,
 
@@ -188,8 +188,13 @@ namespaces = {
 // using for...in on a (modified) array, in which case you deserve what's
 // coming anyway
 try {
-	Object.defineProperty({}, 'test', { value: 0 });
-	Object.defineProperties({}, { test: { value: 0 } });
+	try {
+		Object.defineProperty({}, 'test', { value: 0 });
+		Object.defineProperties({}, { test: { value: 0 } });
+	} catch ( err ) {
+		noMagic = true;
+		throw err;
+	}
 
 	if ( doc ) {
 		Object.defineProperty( testDiv, 'test', { value: 0 });
@@ -214,8 +219,6 @@ try {
 			}
 		}
 	};
-
-	noMagic = true;
 }
 
 
@@ -1231,19 +1234,25 @@ getComponentConstructor = function ( root, name ) {
 	// TODO... write this properly!
 	return root.components[ name ];
 };
-insertHtml = function ( html, docFrag ) {
-	var div, nodes = [];
+(function () {
 
-	div = doc.createElement( 'div' );
-	div.innerHTML = html;
+	var elementCache = {};
 
-	while ( div.firstChild ) {
-		nodes[ nodes.length ] = div.firstChild;
-		docFrag.appendChild( div.firstChild );
-	}
+	insertHtml = function ( html, tagName, docFrag ) {
+		var container, nodes = [];
 
-	return nodes;
-};
+		container = elementCache[ tagName ] || ( elementCache[ tagName ] = doc.createElement( tagName ) );
+		container.innerHTML = html;
+
+		while ( container.firstChild ) {
+			nodes[ nodes.length ] = container.firstChild;
+			docFrag.appendChild( container.firstChild );
+		}
+
+		return nodes;
+	};
+
+}());
 (function () {
 
 	var reassignFragment, reassignElement, reassignMustache;
@@ -1965,7 +1974,7 @@ initFragment = function ( fragment, options ) {
 	}
 
 	// inherit priority
-	fragment.priority = ( parentFragment ? parentFragment.priority + 1 : 0 );
+	fragment.priority = ( parentFragment ? parentFragment.priority + 1 : 1 );
 
 	if ( options.indexRef ) {
 		if ( !fragment.indexRefs ) {
@@ -2665,13 +2674,44 @@ proto.find = function ( selector ) {
 
 	return this.el.querySelector( selector );
 };
-proto.findAll = function ( selector ) {
-	if ( !this.el ) {
-		return [];
-	}
+(function () {
 
-	return this.el.querySelectorAll( selector );
-};
+	var tagSelector, classSelector;
+
+	proto.findAll = function ( selector, live ) {
+		var errorMessage;
+
+		if ( !this.el ) {
+			return [];
+		}
+
+		// If the selector is a tag name or a class name, we can (optionally)
+		// return a live nodelist (querySelector returns a static list)
+		if ( live ) {
+			if ( tagSelector.test( selector ) ) {
+				return this.el.getElementsByTagName( selector );
+			}
+
+			if ( classSelector.test( selector ) ) {
+				return this.el.getElementsByClassName( selector.substring( 1 ) );
+			}
+
+			errorMessage = 'Could not generate live nodelist from "' + selector + '" selector';
+
+			if ( this.debug ) {
+				throw new Error( errorMessage );
+			} else if ( console && console.warn ) {
+				console.warn( errorMessage );
+			}
+		}
+
+		return this.el.querySelectorAll( selector );
+	};
+
+	tagSelector = /^[a-zA-Z][a-zA-Z0-9\-]*$/;
+	classSelector = /^\.[^\s]+$/g;
+
+}());
 proto.fire = function ( eventName ) {
 	var args, i, len, subscribers = this._subs[ eventName ];
 
@@ -2717,7 +2757,7 @@ proto.fire = function ( eventName ) {
 		// Is it the root?
 		else if ( !keypath ) {
 			adaptIfNecessary( this, '', this.data );
-			return this.data;
+			value = this.data;
 		}
 
 		// Is this an uncached evaluator value?
@@ -3007,6 +3047,10 @@ processDeferredUpdates = function ( ractive ) {
 	while ( ractive._defRadios.length ) {
 		ractive._defRadios.pop().update();
 	}
+
+	while ( ractive._defObservers.length ) {
+		ractive._defObservers.pop().update( true );
+	}
 };
 registerDependant = function ( dependant ) {
 	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority, evaluator;
@@ -3260,9 +3304,10 @@ proto.link = function ( keypath ) {
 		observer = new Observer( root, keypath, callback, options );
 
 		if ( !options || options.init !== false ) {
-			observer.update( true );
+			observer.update();
 		}
 
+		observer.ready = true;
 		registerDependant( observer );
 
 		return {
@@ -3276,15 +3321,24 @@ proto.link = function ( keypath ) {
 		this.root = root;
 		this.keypath = keypath;
 		this.callback = callback;
-		this.priority = 0; // observers get top priority
+		this.defer = options.defer;
+		
+		// Observers are notified before any DOM changes take place (though
+		// they can defer execution until afterwards)
+		this.priority = 0;
 
 		// default to root as context, but allow it to be overridden
 		this.context = ( options && options.context ? options.context : root );
 	};
 
 	Observer.prototype = {
-		update: function ( init ) {
+		update: function ( deferred ) {
 			var value;
+
+			if ( this.defer && !deferred && this.ready ) {
+				this.root._defObservers.push( this );
+				return;
+			}
 
 			// Prevent infinite loops
 			if ( this.updating ) {
@@ -3296,7 +3350,7 @@ proto.link = function ( keypath ) {
 			// TODO create, and use, an internal get method instead - we can skip checks
 			value = this.root.get( this.keypath, true );
 
-			if ( !isEqual( value, this.value ) || init ) {
+			if ( !isEqual( value, this.value ) || !this.ready ) {
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {
@@ -3450,11 +3504,6 @@ proto.reset = function ( data, complete ) {
 		previousTransitionManager = this._transitionManager;
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
-		// Attempt to resolve any unresolved keypaths...
-		if ( this._pendingResolution.length ) {
-			attemptKeypathResolution( this );
-		}
-
 		// ...and notify dependants
 		upstreamChanges = getUpstreamChanges( changes );
 		if ( upstreamChanges.length ) {
@@ -3462,6 +3511,11 @@ proto.reset = function ( data, complete ) {
 		}
 
 		notifyMultipleDependants( this, changes );
+
+		// Attempt to resolve any unresolved keypaths...
+		if ( this._pendingResolution.length ) {
+			attemptKeypathResolution( this );
+		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
 		// that they will need to change again before the .set() cycle is complete
@@ -3668,16 +3722,6 @@ proto.toggleFullscreen = function () {
 		this.cancelFullscreen();
 	} else {
 		this.requestFullscreen();
-	}
-};
-proto.unbind = function ( adaptor ) {
-	var bound = this._bound, index;
-
-	index = bound.indexOf( adaptor );
-
-	if ( index !== -1 ) {
-		bound.splice( index, 1 );
-		adaptor.teardown( this );
 	}
 };
 proto.update = function ( keypath, complete ) {
@@ -4953,6 +4997,7 @@ Ractive = function ( options ) {
 		_defSelectValues: { value: [] },
 		_defCheckboxes: { value: [] },
 		_defRadios: { value: [] },
+		_defObservers: { value: [] },
 
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
@@ -6283,7 +6328,7 @@ DomFragment = function ( options ) {
 		this.html = options.descriptor;
 
 		if ( this.docFrag ) {
-			this.nodes = insertHtml( options.descriptor, this.docFrag );
+			this.nodes = insertHtml( options.descriptor, options.parentNode.tagName, this.docFrag );
 		}
 		
 		return; // prevent the rest of the init sequence
@@ -6812,7 +6857,7 @@ DomTriple.prototype = {
 		}
 
 		// get new nodes
-		this.nodes = insertHtml( html, this.docFrag );
+		this.nodes = insertHtml( html, this.parentNode.tagName, this.docFrag );
 
 		if ( !this.initialising ) {
 			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
@@ -9508,8 +9553,8 @@ tokenize = function ( template, options ) {
 	tokenizer = {
 		str: stripHtmlComments( template ),
 		pos: 0,
-		delimiters: options.delimiters || [ '{{', '}}' ],
-		tripleDelimiters: options.tripleDelimiters || [ '{{{', '}}}' ],
+		delimiters: options.delimiters || Ractive.delimiters,
+		tripleDelimiters: options.tripleDelimiters || Ractive.tripleDelimiters,
 		remaining: function () {
 			return tokenizer.str.substring( tokenizer.pos );
 		}
@@ -9544,18 +9589,22 @@ tokenize = function ( template, options ) {
 };
 Ractive.prototype = proto;
 
+// Shared properties
+Ractive.partials = {};
+Ractive.delimiters = [ '{{', '}}' ];
+Ractive.tripleDelimiters = [ '{{{', '}}}' ];
+
+// Plugins
 Ractive.adaptors = adaptors;
 Ractive.eventDefinitions = eventDefinitions;
-Ractive.partials = {};
-
 Ractive.easing = easing;
+Ractive.transitions = transitions;
+
+// Static methods
 Ractive.extend = extend;
 Ractive.interpolate = interpolate;
 Ractive.interpolators = interpolators;
 Ractive.parse = parse;
-
-// TODO add some more transitions
-Ractive.transitions = transitions;
 
 Ractive.VERSION = VERSION;
 
