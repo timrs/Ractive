@@ -29,8 +29,8 @@ ractive = new Ractive({
 	el: example,
 	template: template,
 	data: {
-		format: function ( val, degreeType ) {
-			if ( degreeType === 'fahrenheit' ) {
+		format: function ( val ) {
+			if ( this.get( 'degreeType' ) === 'fahrenheit' ) {
 				// convert celsius to fahrenheit
 				val = ( val * 1.8 ) + 32;
 			}
@@ -40,11 +40,14 @@ ractive = new Ractive({
 
 		// this function returns the SVG string for the polygon representing the
 		// temperature band
-		getBand: function ( array, xScale, yScale ) {
-			var high = [], low = [];
+		band: function ( months ) {
+			var xScale, yScale, high = [], low = [];
 
-			high = getPointsArray( array, xScale, yScale, 'high' );
-			low = getPointsArray( array, xScale, yScale, 'low' );
+			xScale = this.get( 'xScale' );
+			yScale = this.get( 'yScale' );
+
+			high = getPointsArray( months, xScale, yScale, 'high' );
+			low = getPointsArray( months, xScale, yScale, 'low' );
 
 			return high.concat( low.reverse() ).join( ' ' );
 		},

@@ -1,4 +1,4 @@
-/*! Ractive - v0.3.6 - 2013-09-30
+/*! Ractive - v0.3.7 - 2013-10-07
 * Next-generation DOM manipulation
 
 * http://ractivejs.org
@@ -11,7 +11,7 @@
 var Ractive,
 
 // current version
-VERSION = '0.3.6',
+VERSION = '0.3.7',
 
 doc = global.document || null,
 
@@ -188,8 +188,13 @@ namespaces = {
 // using for...in on a (modified) array, in which case you deserve what's
 // coming anyway
 try {
-	Object.defineProperty({}, 'test', { value: 0 });
-	Object.defineProperties({}, { test: { value: 0 } });
+	try {
+		Object.defineProperty({}, 'test', { value: 0 });
+		Object.defineProperties({}, { test: { value: 0 } });
+	} catch ( err ) {
+		noMagic = true;
+		throw err;
+	}
 
 	if ( doc ) {
 		Object.defineProperty( testDiv, 'test', { value: 0 });
@@ -214,8 +219,6 @@ try {
 			}
 		}
 	};
-
-	noMagic = true;
 }
 
 
@@ -1447,19 +1450,25 @@ getComponentConstructor = function ( root, name ) {
 	// TODO... write this properly!
 	return root.components[ name ];
 };
-insertHtml = function ( html, docFrag ) {
-	var div, nodes = [];
+(function () {
 
-	div = doc.createElement( 'div' );
-	div.innerHTML = html;
+	var elementCache = {};
 
-	while ( div.firstChild ) {
-		nodes[ nodes.length ] = div.firstChild;
-		docFrag.appendChild( div.firstChild );
-	}
+	insertHtml = function ( html, tagName, docFrag ) {
+		var container, nodes = [];
 
-	return nodes;
-};
+		container = elementCache[ tagName ] || ( elementCache[ tagName ] = doc.createElement( tagName ) );
+		container.innerHTML = html;
+
+		while ( container.firstChild ) {
+			nodes[ nodes.length ] = container.firstChild;
+			docFrag.appendChild( container.firstChild );
+		}
+
+		return nodes;
+	};
+
+}());
 (function () {
 
 	var reassignFragment, reassignElement, reassignMustache;
@@ -1624,13 +1633,14 @@ insertHtml = function ( html, docFrag ) {
 }());
 (function ( cache ) {
 
-	var Reference, getFunctionFromString, thisPattern, wrapFunction;
+	var Reference, SoftReference, getFunctionFromString, thisPattern, wrapFunction;
 
 	Evaluator = function ( root, keypath, functionStr, args, priority ) {
 		var i, arg;
 
 		this.root = root;
 		this.keypath = keypath;
+		this.priority = priority;
 
 		this.dependants = 0;
 
@@ -1747,6 +1757,38 @@ insertHtml = function ( html, docFrag ) {
 				this.update();
 				this.deferred = false;
 			}
+		},
+
+		updateSoftDependencies: function ( softDeps ) {
+			var i, keypath, ref;
+
+			if ( !this.softRefs ) {
+				this.softRefs = [];
+			}
+
+			// teardown any references that are no longer relevant
+			i = this.softRefs.length;
+			while ( i-- ) {
+				ref = this.softRefs[i];
+				if ( !softDeps[ ref.keypath ] ) {
+					this.softRefs.splice( i, 1 );
+					this.softRefs[ ref.keypath ] = false;
+					ref.teardown();
+				}
+			}
+
+			// add references for any new soft dependencies
+			i = softDeps.length;
+			while ( i-- ) {
+				keypath = softDeps[i];
+				if ( !this.softRefs[ keypath ] ) {
+					ref = new SoftReference( this.root, keypath, this );
+					this.softRefs[ this.softRefs.length ] = ref;
+					this.softRefs[ keypath ] = true;
+				}
+			}
+
+			this.selfUpdating = ( this.refs.length + this.softRefs.length <= 1 );
 		}
 	};
 
@@ -1764,7 +1806,7 @@ insertHtml = function ( html, docFrag ) {
 		value = root.get( keypath );
 
 		if ( typeof value === 'function' ) {
-			value = value._wrapped || wrapFunction( value, root );
+			value = value._wrapped || wrapFunction( value, root, evaluator );
 		}
 
 		this.value = evaluator.values[ argNum ] = value;
@@ -1777,13 +1819,38 @@ insertHtml = function ( html, docFrag ) {
 			var value = this.root.get( this.keypath );
 
 			if ( typeof value === 'function' && !value._nowrap ) {
-				value = value[ '_' + this.root._guid ] || wrapFunction( value, this.root );
+				value = value[ '_' + this.root._guid ] || wrapFunction( value, this.root, this.evaluator );
 			}
 
 			if ( !isEqual( value, this.value ) ) {
 				this.evaluator.values[ this.argNum ] = value;
 				this.evaluator.bubble();
 
+				this.value = value;
+			}
+		},
+
+		teardown: function () {
+			unregisterDependant( this );
+		}
+	};
+
+	SoftReference = function ( root, keypath, evaluator ) {
+		this.root = root;
+		this.keypath = keypath;
+		this.priority = evaluator.priority;
+
+		this.evaluator = evaluator;
+
+		registerDependant( this );
+	};
+
+	SoftReference.prototype = {
+		update: function () {
+			var value = this.root.get( this.keypath );
+
+			if ( !isEqual( value, this.value ) ) {
+				this.evaluator.bubble();
 				this.value = value;
 			}
 		},
@@ -1816,7 +1883,7 @@ insertHtml = function ( html, docFrag ) {
 
 	thisPattern = /this/;
 
-	wrapFunction = function ( fn, ractive ) {
+	wrapFunction = function ( fn, ractive, evaluator ) {
 		var prop;
 
 		// if the function doesn't refer to `this`, we don't need
@@ -1831,7 +1898,32 @@ insertHtml = function ( html, docFrag ) {
 		// otherwise, we do
 		defineProperty( fn, '_' + ractive._guid, {
 			value: function () {
-				return fn.apply( ractive, arguments );
+				var originalGet, result, softDependencies;
+
+				originalGet = ractive.get;
+				ractive.get = function ( keypath ) {
+					if ( !softDependencies ) {
+						softDependencies = [];
+					}
+
+					if ( !softDependencies[ keypath ] ) {
+						softDependencies[ softDependencies.length ] = keypath;
+						softDependencies[ keypath ] = true;
+					}
+					
+					return originalGet.call( ractive, keypath );
+				};
+				
+				result = fn.apply( ractive, arguments );
+				
+				if ( softDependencies ) {
+					evaluator.updateSoftDependencies( softDependencies );
+				}
+
+				// reset
+				ractive.get = originalGet;
+				
+				return result;
 			},
 			writable: true
 		});
@@ -2024,6 +2116,8 @@ insertHtml = function ( html, docFrag ) {
 	};
 
 	getPartialFromRegistry = function ( registry, name ) {
+		var partial, key;
+
 		if ( registry.partials[ name ] ) {
 			
 			// If this was added manually to the registry, but hasn't been parsed,
@@ -2033,7 +2127,19 @@ insertHtml = function ( html, docFrag ) {
 					throw new Error( missingParser );
 				}
 
-				registry.partials[ name ] = Ractive.parse( registry.partials[ name ] );
+				partial = Ractive.parse( registry.partials[ name ], registry.parseOptions );
+
+				if ( isObject( partial ) ) {
+					registry.partials[ name ] = partial.main;
+
+					for ( key in partial.partials ) {
+						if ( partial.partials.hasOwnProperty( key ) ) {
+							registry.partials[ key ] = partial.partials[ key ];
+						}
+					}
+				} else {
+					registry.partials[ name ] = partial;
+				}
 			}
 
 			return unpack( registry.partials[ name ] );
@@ -2084,7 +2190,7 @@ initFragment = function ( fragment, options ) {
 	}
 
 	// inherit priority
-	fragment.priority = ( parentFragment ? parentFragment.priority + 1 : 0 );
+	fragment.priority = ( parentFragment ? parentFragment.priority + 1 : 1 );
 
 	if ( options.indexRef ) {
 		if ( !fragment.indexRefs ) {
@@ -2192,9 +2298,7 @@ initMustache = function ( mustache, options ) {
 
 // methods to add to individual mustache prototypes
 updateMustache = function () {
-	var value;
-
-	value = this.root.get( this.keypath, true );
+	var value = this.root.get( this.keypath, true );
 
 	if ( !isEqual( value, this.value ) ) {
 		this.render( value );
@@ -2776,14 +2880,6 @@ stripStandalones = function ( tokens ) {
 	};
 
 }( proto ));
-proto.bind = function ( adaptor ) {
-	var bound = this._bound;
-
-	if ( bound.indexOf( adaptor ) === -1 ) {
-		bound[ bound.length ] = adaptor;
-		adaptor.init( this );
-	}
-};
 proto.cancelFullscreen = function () {
 	Ractive.cancelFullscreen( this.el );
 };
@@ -2794,13 +2890,44 @@ proto.find = function ( selector ) {
 
 	return this.el.querySelector( selector );
 };
-proto.findAll = function ( selector ) {
-	if ( !this.el ) {
-		return [];
-	}
+(function () {
 
-	return this.el.querySelectorAll( selector );
-};
+	var tagSelector, classSelector;
+
+	proto.findAll = function ( selector, live ) {
+		var errorMessage;
+
+		if ( !this.el ) {
+			return [];
+		}
+
+		// If the selector is a tag name or a class name, we can (optionally)
+		// return a live nodelist (querySelector returns a static list)
+		if ( live ) {
+			if ( tagSelector.test( selector ) ) {
+				return this.el.getElementsByTagName( selector );
+			}
+
+			if ( classSelector.test( selector ) ) {
+				return this.el.getElementsByClassName( selector.substring( 1 ) );
+			}
+
+			errorMessage = 'Could not generate live nodelist from "' + selector + '" selector';
+
+			if ( this.debug ) {
+				throw new Error( errorMessage );
+			} else if ( console && console.warn ) {
+				console.warn( errorMessage );
+			}
+		}
+
+		return this.el.querySelectorAll( selector );
+	};
+
+	tagSelector = /^[a-zA-Z][a-zA-Z0-9\-]*$/;
+	classSelector = /^\.[^\s]+$/g;
+
+}());
 proto.fire = function ( eventName ) {
 	var args, i, len, subscribers = this._subs[ eventName ];
 
@@ -2819,7 +2946,8 @@ proto.fire = function ( eventName ) {
 	var get,
 		prefix,
 		getPrefixer,
-		prefixers = {};
+		prefixers = {},
+		adaptIfNecessary;
 
 	proto.get = function ( keypath ) {
 		var cache,
@@ -2828,12 +2956,8 @@ proto.fire = function ( eventName ) {
 			wrapped,
 			evaluator;
 
-		if ( !keypath ) {
-			return this.data;
-		}
-
 		// Normalise the keypath (i.e. list[0].foo -> list.0.foo)
-		keypath = normaliseKeypath( keypath );
+		keypath = normaliseKeypath( keypath || '' );
 
 		cache = this._cache;
 
@@ -2844,6 +2968,12 @@ proto.fire = function ( eventName ) {
 		// Is this a wrapped property?
 		if ( wrapped = this._wrapped[ keypath ] ) {
 			value = wrapped.value;
+		}
+
+		// Is it the root?
+		else if ( !keypath ) {
+			adaptIfNecessary( this, '', this.data );
+			value = this.data;
 		}
 
 		// Is this an uncached evaluator value?
@@ -2863,16 +2993,16 @@ proto.fire = function ( eventName ) {
 
 
 	get = function ( ractive, keypath ) {
-		var keys, key, parentKeypath, parentValue, cacheMap, value, adaptor, wrapped, i;
+		var keys, key, parentKeypath, parentValue, cacheMap, value, adaptor, wrapped;
 
 		keys = keypath.split( '.' );
 		key = keys.pop();
 		parentKeypath = keys.join( '.' );
 
+		parentValue = ractive.get( parentKeypath );
+
 		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 			parentValue = wrapped.get();
-		} else {
-			parentValue = ( parentKeypath ? ractive.get( parentKeypath ) : ractive.data );
 		}
 
 		if ( parentValue === null || parentValue === undefined ) {
@@ -2893,25 +3023,8 @@ proto.fire = function ( eventName ) {
 
 
 		// Do we have an adaptor for this value?
-		i = ractive.adaptors.length;
-		while ( i-- ) {
-			adaptor = ractive.adaptors[i];
-			
-			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
-			// we need to get the actual adaptor if that's the case
-			if ( typeof adaptor === 'string' ) {
-				if ( !Ractive.adaptors[ adaptor ] ) {
-					throw new Error( 'Missing adaptor "' + adaptor + '"' );
-				}
-				adaptor = ractive.adaptors[i] = Ractive.adaptors[ adaptor ];
-			}
-
-			if ( adaptor.filter( ractive, value, keypath ) ) {
-				wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
-				
-				ractive._cache[ keypath ] = value;
-				return value;
-			}
+		if ( adaptIfNecessary( ractive, keypath, value ) ) {
+			return value;
 		}
 
 
@@ -2976,6 +3089,32 @@ proto.fire = function ( eventName ) {
 		}
 
 		return prefixers[ rootKeypath ];
+	};
+
+	adaptIfNecessary = function ( ractive, keypath, value ) {
+		var i, adaptor, wrapped;
+
+		// Do we have an adaptor for this value?
+		i = ractive.adaptors.length;
+		while ( i-- ) {
+			adaptor = ractive.adaptors[i];
+			
+			// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
+			// we need to get the actual adaptor if that's the case
+			if ( typeof adaptor === 'string' ) {
+				if ( !Ractive.adaptors[ adaptor ] ) {
+					throw new Error( 'Missing adaptor "' + adaptor + '"' );
+				}
+				adaptor = ractive.adaptors[i] = Ractive.adaptors[ adaptor ];
+			}
+
+			if ( adaptor.filter( value, keypath, ractive ) ) {
+				wrapped = ractive._wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+				ractive._cache[ keypath ] = value;
+
+				return true;
+			}
+		}
 	};
 
 }( proto ));
@@ -3124,6 +3263,10 @@ processDeferredUpdates = function ( ractive ) {
 	while ( ractive._defRadios.length ) {
 		ractive._defRadios.pop().update();
 	}
+
+	while ( ractive._defObservers.length ) {
+		ractive._defObservers.pop().update( true );
+	}
 };
 registerDependant = function ( dependant ) {
 	var depsByKeypath, deps, keys, parentKeypath, map, ractive, keypath, priority, evaluator;
@@ -3261,7 +3404,7 @@ resolveRef = function ( ractive, ref, contextStack ) {
 		innerMostContext = contextStack.pop();
 		parentKeypath = innerMostContext + postfix;
 
-		parentValue = ractive.get( innerMostContext + postfix );
+		parentValue = ractive.get( parentKeypath );
 
 		if ( wrapped = ractive._wrapped[ parentKeypath ] ) {
 			parentValue = wrapped.get();
@@ -3377,9 +3520,10 @@ proto.link = function ( keypath ) {
 		observer = new Observer( root, keypath, callback, options );
 
 		if ( !options || options.init !== false ) {
-			observer.update( true );
+			observer.update();
 		}
 
+		observer.ready = true;
 		registerDependant( observer );
 
 		return {
@@ -3393,15 +3537,24 @@ proto.link = function ( keypath ) {
 		this.root = root;
 		this.keypath = keypath;
 		this.callback = callback;
-		this.priority = 0; // observers get top priority
+		this.defer = options.defer;
+		
+		// Observers are notified before any DOM changes take place (though
+		// they can defer execution until afterwards)
+		this.priority = 0;
 
 		// default to root as context, but allow it to be overridden
 		this.context = ( options && options.context ? options.context : root );
 	};
 
 	Observer.prototype = {
-		update: function ( init ) {
+		update: function ( deferred ) {
 			var value;
+
+			if ( this.defer && !deferred && this.ready ) {
+				this.root._defObservers.push( this );
+				return;
+			}
 
 			// Prevent infinite loops
 			if ( this.updating ) {
@@ -3413,7 +3566,7 @@ proto.link = function ( keypath ) {
 			// TODO create, and use, an internal get method instead - we can skip checks
 			value = this.root.get( this.keypath, true );
 
-			if ( !isEqual( value, this.value ) || init ) {
+			if ( !isEqual( value, this.value ) || !this.ready ) {
 				// wrap the callback in a try-catch block, and only throw error in
 				// debug mode
 				try {
@@ -3495,14 +3648,45 @@ proto.renderHTML = function () {
 proto.requestFullscreen = function () {
 	Ractive.requestFullscreen( this.el );
 };
+proto.reset = function ( data, complete ) {
+	var transitionManager, previousTransitionManager;
+
+	if ( typeof data === 'function' ) {
+		complete = data;
+		data = {};
+	}
+
+	if ( data !== undefined && typeof data !== 'object' ) {
+		throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
+	}
+
+	// Manage transitions
+	previousTransitionManager = this._transitionManager;
+	this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+
+	this.data = data || {};
+
+	// Attempt to resolve any unresolved keypaths...
+	if ( this._pendingResolution.length ) {
+		attemptKeypathResolution( this );
+	}
+
+	clearCache( this, '' );
+	notifyDependants( this, '' );
+
+	this.fire( 'reset', data );
+
+	// transition manager has finished its work
+	this._transitionManager = previousTransitionManager;
+	transitionManager.ready();
+};
 (function ( proto ) {
 
-	var set, resetWrapped;
+	var set, getUpstreamChanges, resetWrapped;
 
 	proto.set = function ( keypath, value, complete ) {
 		var map, changes, upstreamChanges, previousTransitionManager, transitionManager, i, changeHash;
 
-		upstreamChanges = [ '' ]; // empty string will always be an upstream keypath
 		changes = [];
 
 		if ( isObject( keypath ) ) {
@@ -3510,40 +3694,43 @@ proto.requestFullscreen = function () {
 			complete = value;
 		}
 
-		// manage transitions
-		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
-
-		// setting multiple values in one go
+		// Set multiple keypaths in one go
 		if ( map ) {
 			for ( keypath in map ) {
 				if ( hasOwn.call( map, keypath) ) {
 					value = map[ keypath ];
 					keypath = normaliseKeypath( keypath );
 
-					set( this, keypath, value, changes, upstreamChanges );
+					set( this, keypath, value, changes );
 				}
 			}
 		}
 
-		// setting a single value
+		// Set a single keypath
 		else {
 			keypath = normaliseKeypath( keypath );
-			set( this, keypath, value, changes, upstreamChanges );
+			set( this, keypath, value, changes );
 		}
 
-		// if anything has changed, attempt to resolve any unresolved keypaths...
-		if ( changes.length && this._pendingResolution.length ) {
-			attemptKeypathResolution( this );
+		if ( !changes.length ) {
+			return;
 		}
+
+		// Manage transitions
+		previousTransitionManager = this._transitionManager;
+		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// ...and notify dependants
+		upstreamChanges = getUpstreamChanges( changes );
 		if ( upstreamChanges.length ) {
 			notifyMultipleDependants( this, upstreamChanges, true );
 		}
 
-		if ( changes.length ) {
-			notifyMultipleDependants( this, changes );
+		notifyMultipleDependants( this, changes );
+
+		// Attempt to resolve any unresolved keypaths...
+		if ( this._pendingResolution.length ) {
+			attemptKeypathResolution( this );
 		}
 
 		// Attributes don't reflect changes automatically if there is a possibility
@@ -3556,7 +3743,7 @@ proto.requestFullscreen = function () {
 		transitionManager.ready();
 
 		// Fire a change event
-		if ( ( i = changes.length ) && !this.firingChangeEvent ) {
+		if ( !this.firingChangeEvent ) {
 			this.firingChangeEvent = true; // short-circuit any potential infinite loops
 			
 			changeHash = {};
@@ -3575,11 +3762,11 @@ proto.requestFullscreen = function () {
 	};
 
 
-	set = function ( ractive, keypath, value, changes, upstreamChanges ) {
+	set = function ( ractive, keypath, value, changes ) {
 		var cached, keys, previous, key, obj, accumulated, currentKeypath, keypathToClear, wrapped;
 
 		if ( ( wrapped = ractive._wrapped[ keypath ] ) && wrapped.reset ) {
-			if ( resetWrapped( ractive, keypath, value, wrapped, changes, upstreamChanges ) !== false ) {
+			if ( resetWrapped( ractive, keypath, value, wrapped, changes ) !== false ) {
 				return;
 			}
 		}
@@ -3589,12 +3776,24 @@ proto.requestFullscreen = function () {
 
 		keys = keypath.split( '.' );
 		accumulated = [];
-		
+
 		// update the model, if necessary
 		if ( previous !== value ) {
 			
-			// update data
-			obj = ractive.data;
+			// Get the root object
+			if ( wrapped = ractive._wrapped[ '' ] ) {
+				if ( wrapped.set ) {
+					// Root object is wrapped, so we need to use the wrapper's
+					// set() method
+					wrapped.set( keys.join( '.' ), value );
+				}
+
+				obj = wrapped.get();
+			} else {
+				obj = ractive.data;
+			}
+
+			
 			while ( keys.length > 1 ) {
 				key = accumulated[ accumulated.length ] = keys.shift();
 				currentKeypath = accumulated.join( '.' );
@@ -3644,24 +3843,33 @@ proto.requestFullscreen = function () {
 
 		// add this keypath to the list of changes
 		changes[ changes.length ] = keypath;
+	};
 
+	getUpstreamChanges = function ( changes ) {
+		var upstreamChanges = [ '' ], i, keypath, keys, upstreamKeypath;
 
-		// add upstream keypaths to the list of upstream changes
-		keys = keypath.split( '.' );
-		while ( keys.length > 1 ) {
-			keys.pop();
-			keypath = keys.join( '.' );
+		i = changes.length;
+		while ( i-- ) {
+			keypath = changes[i];
+			keys = keypath.split( '.' );
 
-			if ( !upstreamChanges[ keypath ] ) {
-				upstreamChanges[ upstreamChanges.length ] = keypath;
-				upstreamChanges[ keypath ] = true;
+			while ( keys.length > 1 ) {
+				keys.pop();
+				upstreamKeypath = keys.join( '.' );
+
+				if ( !upstreamChanges[ upstreamKeypath ] ) {
+					upstreamChanges[ upstreamChanges.length ] = upstreamKeypath;
+					upstreamChanges[ upstreamKeypath ] = true;
+				}
 			}
 		}
+
+		return upstreamChanges;
 	};
 
 
-	resetWrapped = function ( ractive, keypath, value, wrapped, changes, upstreamChanges ) {
-		var previous, cached, cacheMap, keys, i;
+	resetWrapped = function ( ractive, keypath, value, wrapped, changes ) {
+		var previous, cached, cacheMap, i;
 
 		previous = wrapped.get();
 
@@ -3690,18 +3898,6 @@ proto.requestFullscreen = function () {
 			}
 
 			changes[ changes.length ] = keypath;
-
-			// add upstream keypaths to the list of upstream changes
-			keys = keypath.split( '.' );
-			while ( keys.length > 1 ) {
-				keys.pop();
-				keypath = keys.join( '.' );
-
-				if ( !upstreamChanges[ keypath ] ) {
-					upstreamChanges[ upstreamChanges.length ] = keypath;
-					upstreamChanges[ keypath ] = true;
-				}
-			}
 		}
 	};
 
@@ -3742,16 +3938,6 @@ proto.toggleFullscreen = function () {
 		this.cancelFullscreen();
 	} else {
 		this.requestFullscreen();
-	}
-};
-proto.unbind = function ( adaptor ) {
-	var bound = this._bound, index;
-
-	index = bound.indexOf( adaptor );
-
-	if ( index !== -1 ) {
-		bound.splice( index, 1 );
-		adaptor.teardown( this );
 	}
 };
 proto.update = function ( keypath, complete ) {
@@ -4957,33 +5143,36 @@ interpolators = {
 		};
 	}
 };
-var defaultOptions = createFromNull();
+var defaultOptions = createFromNull(), getObject, getArray;
+
+getObject = function () { return {}; };
+getArray = function () { return []; };
 
 defineProperties( defaultOptions, {
-	preserveWhitespace: { enumerable: true, value: false },
-	append:             { enumerable: true, value: false },
-	twoway:             { enumerable: true, value: true  },
-	modifyArrays:       { enumerable: true, value: true  },
-	data:               { enumerable: true, value: {}    },
-	lazy:               { enumerable: true, value: false },
-	debug:              { enumerable: true, value: false },
-	transitions:        { enumerable: true, value: {}    },
-	eventDefinitions:   { enumerable: true, value: {}    },
-	noIntro:            { enumerable: true, value: false },
-	transitionsEnabled: { enumerable: true, value: true  },
-	magic:              { enumerable: true, value: false },
-	adaptors:           { enumerable: true, value: []    }
+	preserveWhitespace: { enumerable: true, value: false     },
+	append:             { enumerable: true, value: false     },
+	twoway:             { enumerable: true, value: true      },
+	modifyArrays:       { enumerable: true, value: true      },
+	data:               { enumerable: true, value: getObject },
+	lazy:               { enumerable: true, value: false     },
+	debug:              { enumerable: true, value: false     },
+	transitions:        { enumerable: true, value: getObject },
+	eventDefinitions:   { enumerable: true, value: getObject },
+	noIntro:            { enumerable: true, value: false     },
+	transitionsEnabled: { enumerable: true, value: true      },
+	magic:              { enumerable: true, value: false     },
+	adaptors:           { enumerable: true, value: getArray  }
 });
 
 Ractive = function ( options ) {
 
-	var key, partial, i, template, templateEl, parsedTemplate;
+	var key, template, templateEl, parsedTemplate;
 
 	// Options
 	// -------
 	for ( key in defaultOptions ) {
-		if ( !hasOwn.call( options, key ) ) {
-			options[ key ] = ( typeof defaultOptions[ key ] === 'object' ? {} : defaultOptions[ key ] );
+		if ( options[ key ] === undefined ) {
+			options[ key ] = ( typeof defaultOptions[ key ] === 'function' ? defaultOptions[ key ]() : defaultOptions[ key ] );
 		}
 	}
 
@@ -5024,12 +5213,10 @@ Ractive = function ( options ) {
 		_defSelectValues: { value: [] },
 		_defCheckboxes: { value: [] },
 		_defRadios: { value: [] },
+		_defObservers: { value: [] },
 
 		// Keep a list of used evaluators, so we don't duplicate them
 		_evaluators: { value: createFromNull() },
-
-		// external model bindings
-		_bound: { value: [] },
 
 		// two-way bindings
 		_twowayBindings: { value: {} },
@@ -5065,17 +5252,9 @@ Ractive = function ( options ) {
 		}
 	}
 
-	// shallow clone data
-	this.data = {};
-	for ( key in options.data ) {
-		if ( hasOwn.call( options.data, key ) ) {
-			this.data[ key ] = options.data[ key ];
-		}
-	}
-	
 
-	// Partials registry
-	this.partials = {};
+	this.data = options.data;
+	
 
 	// Components registry
 	this.components = options.components || {};
@@ -5089,21 +5268,11 @@ Ractive = function ( options ) {
 	// Adaptors
 	this.adaptors = options.adaptors;
 
-	// Set up bindings
-	if ( options.bindings ) {
-		if ( isArray( options.bindings ) ) {
-			for ( i=0; i<options.bindings.length; i+=1 ) {
-				this.bind( options.bindings[i] );
-			}
-		} else {
-			this.bind( options.bindings );
-		}
-	}
-
 
 	// Parse template, if necessary
 	template = options.template;
 
+	
 	if ( typeof template === 'string' ) {
 		if ( !Ractive.parse ) {
 			throw new Error( missingParser );
@@ -5132,6 +5301,8 @@ Ractive = function ( options ) {
 	if ( isObject( parsedTemplate ) ) {
 		this.partials = parsedTemplate.partials;
 		parsedTemplate = parsedTemplate.main;
+	} else {
+		this.partials = {};
 	}
 
 	// If the template was an array with a single string member, that means
@@ -5142,27 +5313,22 @@ Ractive = function ( options ) {
 
 	this.template = parsedTemplate;
 
-
-	// If we were given unparsed partials, parse them
+	// Add partials to our registry
 	if ( options.partials ) {
 		for ( key in options.partials ) {
 			if ( hasOwn.call( options.partials, key ) ) {
-				partial = options.partials[ key ];
-
-				if ( typeof partial === 'string' ) {
-					if ( !Ractive.parse ) {
-						throw new Error( missingParser );
-					}
-
-					partial = Ractive.parse( partial, options );
-				}
-
-				this.partials[ key ] = partial;
+				this.partials[ key ] = options.partials[ key ];
 			}
 		}
 	}
-	
 
+	this.parseOptions = {
+		preserveWhitespace: options.preserveWhitespace,
+		sanitize: options.sanitize
+	};
+
+
+	
 	// temporarily disable transitions, if noIntro flag is set
 	this.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
 
@@ -5975,7 +6141,8 @@ var arrayContentsMatch = function ( a, b ) {
 			initFalse,
 			processKeyValuePair,
 			eventName,
-			propagateEvent;
+			propagateEvent,
+			items;
 
 		root = parentFragment.root;
 
@@ -6061,7 +6228,18 @@ var arrayContentsMatch = function ( a, b ) {
 			docFrag.appendChild( instance.el.firstChild );
 		}
 
+		// reset node references...
+		// TODO this is a filthy hack! Need to come up with a neater solution
 		instance.el = parentFragment.parentNode;
+		items = instance.fragment.items;
+		if ( items ) {
+			i = items.length;
+			while ( i-- ) {
+				if ( items[i].parentNode ) {
+					items[i].parentNode = parentFragment.parentNode;
+				}
+			}
+		}
 
 		self.observers = [];
 		initFalse = { init: false };
@@ -6366,7 +6544,7 @@ DomFragment = function ( options ) {
 		this.html = options.descriptor;
 
 		if ( this.docFrag ) {
-			this.nodes = insertHtml( options.descriptor, this.docFrag );
+			this.nodes = insertHtml( options.descriptor, options.parentNode.tagName, this.docFrag );
 		}
 		
 		return; // prevent the rest of the init sequence
@@ -6895,7 +7073,7 @@ DomTriple.prototype = {
 		}
 
 		// get new nodes
-		this.nodes = insertHtml( html, this.docFrag );
+		this.nodes = insertHtml( html, this.parentNode.tagName, this.docFrag );
 
 		if ( !this.initialising ) {
 			this.parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
@@ -9591,8 +9769,8 @@ tokenize = function ( template, options ) {
 	tokenizer = {
 		str: stripHtmlComments( template ),
 		pos: 0,
-		delimiters: options.delimiters || [ '{{', '}}' ],
-		tripleDelimiters: options.tripleDelimiters || [ '{{{', '}}}' ],
+		delimiters: options.delimiters || Ractive.delimiters,
+		tripleDelimiters: options.tripleDelimiters || Ractive.tripleDelimiters,
 		remaining: function () {
 			return tokenizer.str.substring( tokenizer.pos );
 		}
@@ -9627,18 +9805,22 @@ tokenize = function ( template, options ) {
 };
 Ractive.prototype = proto;
 
+// Shared properties
+Ractive.partials = {};
+Ractive.delimiters = [ '{{', '}}' ];
+Ractive.tripleDelimiters = [ '{{{', '}}}' ];
+
+// Plugins
 Ractive.adaptors = adaptors;
 Ractive.eventDefinitions = eventDefinitions;
-Ractive.partials = {};
-
 Ractive.easing = easing;
+Ractive.transitions = transitions;
+
+// Static methods
 Ractive.extend = extend;
 Ractive.interpolate = interpolate;
 Ractive.interpolators = interpolators;
 Ractive.parse = parse;
-
-// TODO add some more transitions
-Ractive.transitions = transitions;
 
 Ractive.VERSION = VERSION;
 

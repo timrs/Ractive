@@ -41,19 +41,19 @@
 				{{#selectedCity}}
 					
 					<!-- the band -->
-					<polygon fill='url(#gradient)' stroke='url(#gradient)' class='temperature-band' points='{{ getBand(months,xScale,yScale) }}'/>
+					<polygon fill='url(#gradient)' stroke='url(#gradient)' class='temperature-band' points='{{ band(months) }}'/>
 
 					{{#months:i}}
 						<!-- point markers for average highs -->
 						<g class='marker' transform='translate({{ xScale(i+0.5) }},{{ yScale(high) }})'>
 							<circle r='2'/>
-							<text y='-10'>{{ format(high,degreeType) }}</text>
+							<text y='-10'>{{ format(high) }}</text>
 						</g>
 
 						<!-- point markers for average lows -->
 						<g class='marker' transform='translate({{ xScale(i+0.5) }},{{ yScale(low) }})'>
 							<circle r='2'/>
-							<text y='15'>{{ format(low,degreeType) }}</text>
+							<text y='15'>{{ format(low) }}</text>
 						</g>
 					{{/months}}
 				{{/selectedCity}}
