@@ -53,7 +53,7 @@
 
 <!-- {{>item}} -->
 {{# filter( (.), currentFilter ) }}
-<li intro='slide:fast' outro='slide:fast' class='{{ completed ? "completed" : "" }} {{ editing ? "editing" : "" }}'>
+<li intro='slide:fast' outro='slide:fast' class='{{ .completed ? "completed" : "" }} {{ .editing ? "editing" : "" }}'>
 	<div class='view'>
 		<input class='toggle' type='checkbox' checked='{{.completed}}'>
 		<label on-dblclick='edit'>{{description}}</label>
