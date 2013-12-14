@@ -46,13 +46,13 @@ define([ 'Ractive', '../samples/render' ], function ( Ractive, tests ) {
 				});
 
 				t.htmlEqual( fixture.innerHTML, theTest.result );
-				t.htmlEqual( view.renderHTML(), theTest.result );
+				t.htmlEqual( view.toHTML(), theTest.result );
 
 				if ( theTest.new_data ) {
 					view.set( theTest.new_data );
 					
 					t.htmlEqual( fixture.innerHTML, theTest.new_result );
-					t.htmlEqual( view.renderHTML(), theTest.new_result );
+					t.htmlEqual( view.toHTML(), theTest.new_result );
 				}
 			});
 		};

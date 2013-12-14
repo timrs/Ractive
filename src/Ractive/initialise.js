@@ -68,6 +68,8 @@ define([
 
 		// We use Object.defineProperties (where possible) as these should be read-only
 		defineProperties( ractive, {
+			_initing: { value: true, writable: true },
+
 			// Generate a unique identifier, for places where you'd use a weak map if it
 			// existed
 			_guid: {
@@ -237,6 +239,8 @@ define([
 		// reset transitionsEnabled
 		ractive.transitionsEnabled = options.transitionsEnabled;
 
+		// end init sequence
+		ractive._initing = false;
 	};
 
 });

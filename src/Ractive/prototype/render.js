@@ -17,6 +17,14 @@ define([
 	return function ( target, complete ) {
 		var transitionManager;
 
+		// This method is part of the API for one reason only - so that it can be
+		// overwritten by components that don't want to use the templating system
+		// (e.g. canvas-based components). It shouldn't be called outside of the
+		// initialisation sequence!
+		if ( !this._initing ) {
+			throw new Error( 'You cannot call ractive.render() directly!' );
+		}
+
 		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
 
 		// Render our *root fragment*

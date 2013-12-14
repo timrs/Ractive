@@ -101,10 +101,10 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				data: { items: [ 'a', 'b', 'c' ] }
 			});
 
-			t.htmlEqual( ractive.renderHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' );
+			t.htmlEqual( ractive.toHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' );
 		});
 
-		test( 'Triples work with renderHTML', function ( t ) {
+		test( 'Triples work with toHTML', function ( t ) {
 			var ractive;
 
 			ractive = new Ractive({
@@ -112,7 +112,7 @@ define([ 'Ractive', '../vendor/Ractive-events-tap' ], function ( Ractive ) {
 				data: { triple: '<p>test</p>' }
 			});
 
-			t.htmlEqual( ractive.renderHTML(), '<p>test</p>' );
+			t.htmlEqual( ractive.toHTML(), '<p>test</p>' );
 		});
 
 		test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', function ( t ) {
