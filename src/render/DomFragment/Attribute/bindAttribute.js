@@ -264,7 +264,7 @@ define([
 
 			// TODO we're hijacking an existing bit of functionality here...
 			// the whole deferred updates thing could use a spring clean
-			this.root._defAttrs.push( this );
+			this.root._deferred.attrs.push( this );
 			this.deferred = true;
 		},
 
@@ -292,7 +292,7 @@ define([
 		if ( valueFromModel !== undefined ) {
 			node.checked = ( valueFromModel === node._ractive.value );
 		} else {
-			this.root._defRadios[ this.root._defRadios.length ] = this;
+			this.root._deferred.radios.push( this );
 		}
 	};
 
@@ -343,8 +343,8 @@ define([
 
 		// otherwise make a note that we will need to update the model later
 		else {
-			if ( this.root._defCheckboxes.indexOf( this.keypath ) === -1 ) {
-				this.root._defCheckboxes[ this.root._defCheckboxes.length ] = this.keypath;
+			if ( this.root._deferred.checkboxes.indexOf( this.keypath ) === -1 ) {
+				this.root._deferred.checkboxes.push( this.keypath );
 			}
 		}
 	};

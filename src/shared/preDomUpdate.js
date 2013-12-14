@@ -4,29 +4,28 @@ define([ 'shared/getValueFromCheckboxes' ], function ( getValueFromCheckboxes ) 
 
 	// TODO can this be neatened up at all?
 	return function ( ractive ) {
-		var evaluator, attribute, keypath;
+		var deferred, evaluator, selectValue, attribute, keypath, radio;
 
-		while ( ractive._defEvals.length ) {
-			 evaluator = ractive._defEvals.pop();
-			 evaluator.update().deferred = false;
+		deferred = ractive._deferred;
+
+		while ( evaluator = deferred.evals.pop() ) {
+			evaluator.update().deferred = false;
 		}
 
-		while ( ractive._defSelectValues.length ) {
-			ractive._defSelectValues.pop().deferredUpdate();
+		while ( selectValue = deferred.selectValues.pop() ) {
+			selectValue.deferredUpdate();
 		}
 
-		while ( ractive._defAttrs.length ) {
-			attribute = ractive._defAttrs.pop();
+		while ( attribute = deferred.attrs.pop() ) {
 			attribute.update().deferred = false;
 		}
 
-		while ( ractive._defCheckboxes.length ) {
-			keypath = ractive._defCheckboxes.pop();
+		while ( keypath = deferred.checkboxes.pop() ) {
 			ractive.set( keypath, getValueFromCheckboxes( ractive, keypath ) );
 		}
 
-		while ( ractive._defRadios.length ) {
-			ractive._defRadios.pop().update();
+		while ( radio = deferred.radios.pop() ) {
+			radio.update();
 		}
 	};
 

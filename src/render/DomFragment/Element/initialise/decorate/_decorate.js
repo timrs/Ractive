@@ -8,7 +8,7 @@ define([
 
 	return function ( descriptor, root, owner, contextStack ) {
 		owner.decorator = new Decorator( descriptor, root, owner, contextStack );
-		root._defDecorators.push( owner.decorator );
+		root._deferred.decorators.push( owner.decorator );
 	};
 
 });

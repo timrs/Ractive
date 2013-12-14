@@ -97,16 +97,7 @@ define([
 			_pendingResolution: { value: [] },
 
 			// Create arrays for deferred attributes and evaluators etc
-			_defAttrs: { value: [] },
-			_defEvals: { value: [] },
-			_defSelectValues: { value: [] },
-			_defCheckboxes: { value: [] },
-			_defRadios: { value: [] },
-			_defObservers: { value: [] },
-			_defTransitions: { value: [] },
-			_defLiveQueries: { value: [] },
-			_defDecorators: { value: [] },
-			_defFocusable: { value: null, writable: true },
+			_deferred: { value: {} },
 
 			// Keep a list of used evaluators, so we don't duplicate them
 			_evaluators: { value: create( null ) },
@@ -128,6 +119,19 @@ define([
 
 			// live queries
 			_liveQueries: { value: [] }
+		});
+
+		defineProperties( ractive._deferred, {
+			attrs: { value: [] },
+			evals: { value: [] },
+			selectValues: { value: [] },
+			checkboxes: { value: [] },
+			radios: { value: [] },
+			observers: { value: [] },
+			transitions: { value: [] },
+			liveQueries: { value: [] },
+			decorators: { value: [] },
+			focusable: { value: null, writable: true }
 		});
 
 		// options

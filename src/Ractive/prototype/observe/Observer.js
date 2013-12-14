@@ -40,7 +40,7 @@ define([
 
 		update: function () {
 			if ( this.defer && this.ready ) {
-				this.root._defObservers.push( this.proxy );
+				this.root._deferred.observers.push( this.proxy );
 				return;
 			}
 

@@ -57,7 +57,7 @@ define([
 
 	dirtyQuery = function () {
 		if ( !this._dirty ) {
-			this._root._defLiveQueries.push( this );
+			this._root._deferred.liveQueries.push( this );
 			this._dirty = true;
 		}
 	};

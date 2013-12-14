@@ -92,7 +92,7 @@ define([ 'utils/isArray', 'config/namespaces' ], function ( isArray, namespaces 
 		// because select values depend partly on the values of their children, and their
 		// children may be entering and leaving the DOM, we wait until updates are
 		// complete before updating
-		this.root._defSelectValues.push( this );
+		this.root._deferred.selectValues.push( this );
 		return this;
 	};
 

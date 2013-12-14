@@ -34,7 +34,7 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// DOM manipulation
 			else if ( !this.deferred && this.ready ) {
-				this.root._defAttrs[ this.root._defAttrs.length ] = this;
+				this.root._deferred.attrs.push( this );
 				this.deferred = true;
 			}
 		},

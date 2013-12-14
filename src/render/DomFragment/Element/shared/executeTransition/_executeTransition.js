@@ -37,7 +37,7 @@ define([
 			if ( isIntro ) {
 				// we don't want to call the transition function until this node
 				// exists on the DOM
-				root._defTransitions.push( transition );
+				root._deferred.transitions.push( transition );
 			} else {
 				transition.init();
 			}

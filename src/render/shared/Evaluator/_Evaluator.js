@@ -66,7 +66,7 @@ define([
 			// updated once all the information is in, to prevent unnecessary
 			// cascading. Only if we're already resolved, obviously
 			else if ( !this.deferred ) {
-				this.root._defEvals[ this.root._defEvals.length ] = this;
+				this.root._deferred.evals.push( this );
 				this.deferred = true;
 			}
 		},

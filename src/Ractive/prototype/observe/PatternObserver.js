@@ -66,7 +66,7 @@ define([
 			}
 
 			if ( this.defer && this.ready ) {
-				this.root._defObservers.push( this.getProxy( keypath ) );
+				this.root._deferred.observers.push( this.getProxy( keypath ) );
 				return;
 			}
 
