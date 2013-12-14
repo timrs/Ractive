@@ -134,8 +134,6 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			expected = 2;
 			ractive.set( 'foo', { bar: { baz: 2 } });
-
-			window.ractive = ractive;
 		});
 
 		test( 'Pattern observers can have multiple wildcards', function ( t ) {
@@ -158,8 +156,6 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			expected = 2;
 			ractive.set( 'foo.bar', { baz: 2 });
-
-			window.ractive = ractive;
 		});
 
 		test( 'The first key in a pattern observer\'s pattern can be a wildcard', function ( t ) {
@@ -182,8 +178,6 @@ define([ 'Ractive' ], function ( Ractive ) {
 
 			expected = 2;
 			ractive.set( 'gup.foo.bar', { baz: 2 });
-
-			window.ractive = ractive;
 		});
 		
 	};
