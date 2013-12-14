@@ -500,45 +500,44 @@ var shared_getValueFromCheckboxes = function () {
 var shared_preDomUpdate = function (getValueFromCheckboxes) {
         
         return function (ractive) {
-            var evaluator, attribute, keypath;
-            while (ractive._defEvals.length) {
-                evaluator = ractive._defEvals.pop();
+            var deferred, evaluator, selectValue, attribute, keypath, radio;
+            deferred = ractive._deferred;
+            while (evaluator = deferred.evals.pop()) {
                 evaluator.update().deferred = false;
             }
-            while (ractive._defSelectValues.length) {
-                ractive._defSelectValues.pop().deferredUpdate();
+            while (selectValue = deferred.selectValues.pop()) {
+                selectValue.deferredUpdate();
             }
-            while (ractive._defAttrs.length) {
-                attribute = ractive._defAttrs.pop();
+            while (attribute = deferred.attrs.pop()) {
                 attribute.update().deferred = false;
             }
-            while (ractive._defCheckboxes.length) {
-                keypath = ractive._defCheckboxes.pop();
+            while (keypath = deferred.checkboxes.pop()) {
                 ractive.set(keypath, getValueFromCheckboxes(ractive, keypath));
             }
-            while (ractive._defRadios.length) {
-                ractive._defRadios.pop().update();
+            while (radio = deferred.radios.pop()) {
+                radio.update();
             }
         };
     }(shared_getValueFromCheckboxes);
 var shared_postDomUpdate = function () {
         
         return function (ractive) {
-            var focusable, query, decorator, transition, observer;
-            if (focusable = ractive._defFocusable) {
+            var deferred, focusable, query, decorator, transition, observer;
+            deferred = ractive._deferred;
+            if (focusable = deferred.focusable) {
                 focusable.focus();
-                ractive._defFocusable = null;
+                deferred.focusable = null;
             }
-            while (query = ractive._defLiveQueries.pop()) {
+            while (query = deferred.liveQueries.pop()) {
                 query._sort();
             }
-            while (decorator = ractive._defDecorators.pop()) {
+            while (decorator = deferred.decorators.pop()) {
                 decorator.init();
             }
-            while (transition = ractive._defTransitions.pop()) {
+            while (transition = deferred.transitions.pop()) {
                 transition.init();
             }
-            while (observer = ractive._defObservers.pop()) {
+            while (observer = deferred.observers.pop()) {
                 observer.update();
             }
         };
@@ -1987,7 +1986,7 @@ var Ractive_prototype_observe_Observer = function (isEqual) {
             },
             update: function () {
                 if (this.defer && this.ready) {
-                    this.root._defObservers.push(this.proxy);
+                    this.root._deferred.observers.push(this.proxy);
                     return;
                 }
                 this.reallyUpdate();
@@ -2094,7 +2093,7 @@ var Ractive_prototype_observe_PatternObserver = function (isEqual, getPattern) {
                     return;
                 }
                 if (this.defer && this.ready) {
-                    this.root._defObservers.push(this.getProxy(keypath));
+                    this.root._deferred.observers.push(this.getProxy(keypath));
                     return;
                 }
                 this.reallyUpdate(keypath);
@@ -2295,7 +2294,7 @@ var Ractive_prototype_findAll = function (warn, matches, defineProperties) {
         };
         dirtyQuery = function () {
             if (!this._dirty) {
-                this._root._defLiveQueries.push(this);
+                this._root._deferred.liveQueries.push(this);
                 this._dirty = true;
             }
         };
@@ -2592,7 +2591,7 @@ var render_shared_Evaluator__Evaluator = function (isEqual, defineProperty, clea
                 if (this.selfUpdating) {
                     this.update();
                 } else if (!this.deferred) {
-                    this.root._defEvals[this.root._defEvals.length] = this;
+                    this.root._deferred.evals.push(this);
                     this.deferred = true;
                 }
             },
@@ -3527,7 +3526,91 @@ var render_DomFragment_shared_enforceCase = function () {
             return map[lowerCaseElementName] || lowerCaseElementName;
         };
     }();
-var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
+var render_DomFragment_Attribute_helpers_determineNameAndNamespace = function (namespaces, enforceCase) {
+        
+        return function (attribute, name) {
+            var colonIndex, namespacePrefix;
+            colonIndex = name.indexOf(':');
+            if (colonIndex !== -1) {
+                namespacePrefix = name.substr(0, colonIndex);
+                if (namespacePrefix !== 'xmlns') {
+                    name = name.substring(colonIndex + 1);
+                    attribute.name = enforceCase(name);
+                    attribute.lcName = attribute.name.toLowerCase();
+                    attribute.namespace = namespaces[namespacePrefix.toLowerCase()];
+                    if (!attribute.namespace) {
+                        throw 'Unknown namespace ("' + namespacePrefix + '")';
+                    }
+                    return;
+                }
+            }
+            attribute.name = attribute.element.namespace !== namespaces.html ? enforceCase(name) : name;
+            attribute.lcName = attribute.name.toLowerCase();
+        };
+    }(config_namespaces, render_DomFragment_shared_enforceCase);
+var render_DomFragment_Attribute_helpers_setStaticAttribute = function (namespaces) {
+        
+        return function (attribute, options) {
+            var node, value = options.value === null ? '' : options.value;
+            if (node = options.pNode) {
+                if (attribute.namespace) {
+                    node.setAttributeNS(attribute.namespace, options.name, value);
+                } else {
+                    if (options.name === 'style' && node.style.setAttribute) {
+                        node.style.setAttribute('cssText', value);
+                    } else if (options.name === 'class' && (!node.namespaceURI || node.namespaceURI === namespaces.html)) {
+                        node.className = value;
+                    } else {
+                        node.setAttribute(options.name, value);
+                    }
+                }
+                if (attribute.name === 'id') {
+                    options.root.nodes[options.value] = node;
+                }
+                if (attribute.name === 'value') {
+                    node._ractive.value = options.value;
+                }
+            }
+            attribute.value = options.value;
+        };
+    }(config_namespaces);
+var render_DomFragment_Attribute_helpers_determinePropertyName = function (namespaces) {
+        
+        var propertyNames = {
+                'accept-charset': 'acceptCharset',
+                accesskey: 'accessKey',
+                bgcolor: 'bgColor',
+                'class': 'className',
+                codebase: 'codeBase',
+                colspan: 'colSpan',
+                contenteditable: 'contentEditable',
+                datetime: 'dateTime',
+                dirname: 'dirName',
+                'for': 'htmlFor',
+                'http-equiv': 'httpEquiv',
+                ismap: 'isMap',
+                maxlength: 'maxLength',
+                novalidate: 'noValidate',
+                pubdate: 'pubDate',
+                readonly: 'readOnly',
+                rowspan: 'rowSpan',
+                tabindex: 'tabIndex',
+                usemap: 'useMap'
+            };
+        return function (attribute, options) {
+            var propertyName;
+            if (attribute.pNode && !attribute.namespace && (!options.pNode.namespaceURI || options.pNode.namespaceURI === namespaces.html)) {
+                propertyName = propertyNames[attribute.name] || attribute.name;
+                if (options.pNode[propertyName] !== undefined) {
+                    attribute.propertyName = propertyName;
+                }
+                if (typeof options.pNode[propertyName] === 'boolean' || propertyName === 'value') {
+                    attribute.useProperty = true;
+                }
+            }
+        };
+    }(config_namespaces);
+var render_DomFragment_Attribute_prototype_bind = function (types, warn, arrayContentsMatch, isNumeric, getValueFromCheckboxes) {
         
         var bindAttribute, getInterpolator, updateModel, update, getBinding, inheritProperties, MultipleSelectBinding, SelectBinding, RadioNameBinding, CheckboxNameBinding, CheckedBinding, FileListBinding, ContentEditableBinding, GenericBinding;
         bindAttribute = function () {
@@ -3681,7 +3764,7 @@ var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayCon
                 if (this.deferred === true) {
                     return;
                 }
-                this.root._defAttrs.push(this);
+                this.root._deferred.attrs.push(this);
                 this.deferred = true;
             },
             teardown: function () {
@@ -3701,7 +3784,7 @@ var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayCon
             if (valueFromModel !== undefined) {
                 node.checked = valueFromModel === node._ractive.value;
             } else {
-                this.root._defRadios[this.root._defRadios.length] = this;
+                this.root._deferred.radios.push(this);
             }
         };
         RadioNameBinding.prototype = {
@@ -3735,8 +3818,8 @@ var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayCon
                 checked = valueFromModel.indexOf(node._ractive.value) !== -1;
                 node.checked = checked;
             } else {
-                if (this.root._defCheckboxes.indexOf(this.keypath) === -1) {
-                    this.root._defCheckboxes[this.root._defCheckboxes.length] = this.keypath;
+                if (this.root._deferred.checkboxes.indexOf(this.keypath) === -1) {
+                    this.root._deferred.checkboxes.push(this.keypath);
                 }
             }
         };
@@ -3853,7 +3936,7 @@ var render_DomFragment_Attribute_bindAttribute = function (types, warn, arrayCon
         };
         return bindAttribute;
     }(config_types, utils_warn, utils_arrayContentsMatch, utils_isNumeric, shared_getValueFromCheckboxes);
-var render_DomFragment_Attribute_updateAttribute = function (isArray, namespaces) {
+var render_DomFragment_Attribute_prototype_update = function (isArray, namespaces) {
         
         var updateAttribute, updateFileInputValue, deferSelect, initSelect, updateSelect, updateMultipleSelect, updateRadioName, updateCheckboxName, updateIEStyleAttribute, updateClassName, updateContentEditableValue, updateEverythingElse;
         updateAttribute = function () {
@@ -3904,7 +3987,7 @@ var render_DomFragment_Attribute_updateAttribute = function (isArray, namespaces
             this.deferredUpdate();
         };
         deferSelect = function () {
-            this.root._defSelectValues.push(this);
+            this.root._deferred.selectValues.push(this);
             return this;
         };
         updateSelect = function () {
@@ -4304,10 +4387,16 @@ var render_StringFragment_Interpolator = function (types, teardown, initMustache
                 if (this.value === null) {
                     return 'null';
                 }
-                return this.value.toString();
+                return stringify(this.value);
             }
         };
         return StringInterpolator;
+        function stringify(value) {
+            if (typeof value === 'string') {
+                return value;
+            }
+            return JSON.stringify(value);
+        }
     }(config_types, shared_teardown, render_shared_initMustache, render_shared_updateMustache, render_shared_resolveMustache);
 var render_StringFragment_Section = function (types, initMustache, updateMustache, resolveMustache, updateSection, teardown, circular) {
         
@@ -4449,31 +4538,9 @@ var render_StringFragment__StringFragment = function (types, parseJSON, initFrag
         circular.StringFragment = StringFragment;
         return StringFragment;
     }(config_types, utils_parseJSON, render_shared_initFragment, render_StringFragment_Interpolator, render_StringFragment_Section, render_StringFragment_Text, circular);
-var render_DomFragment_Attribute__Attribute = function (namespaces, enforceCase, bindAttribute, updateAttribute, StringFragment) {
+var render_DomFragment_Attribute__Attribute = function (determineNameAndNamespace, setStaticAttribute, determinePropertyName, bind, update, StringFragment) {
         
-        var DomAttribute, propertyNames, determineNameAndNamespace, setStaticAttribute, determinePropertyName;
-        propertyNames = {
-            'accept-charset': 'acceptCharset',
-            accesskey: 'accessKey',
-            bgcolor: 'bgColor',
-            'class': 'className',
-            codebase: 'codeBase',
-            colspan: 'colSpan',
-            contenteditable: 'contentEditable',
-            datetime: 'dateTime',
-            dirname: 'dirName',
-            'for': 'htmlFor',
-            'http-equiv': 'httpEquiv',
-            ismap: 'isMap',
-            maxlength: 'maxLength',
-            novalidate: 'noValidate',
-            pubdate: 'pubDate',
-            readonly: 'readOnly',
-            rowspan: 'rowSpan',
-            tabindex: 'tabIndex',
-            usemap: 'useMap'
-        };
-        DomAttribute = function (options) {
+        var DomAttribute = function (options) {
             this.element = options.element;
             determineNameAndNamespace(this, options.name);
             if (options.value === null || typeof options.value === 'string') {
@@ -4503,8 +4570,8 @@ var render_DomFragment_Attribute__Attribute = function (namespaces, enforceCase,
             this.ready = true;
         };
         DomAttribute.prototype = {
-            bind: bindAttribute,
-            update: updateAttribute,
+            bind: bind,
+            update: update,
             updateBindings: function () {
                 this.keypath = this.interpolator.keypath || this.interpolator.ref;
                 if (this.propertyName === 'name') {
@@ -4527,7 +4594,7 @@ var render_DomFragment_Attribute__Attribute = function (namespaces, enforceCase,
                 if (this.selfUpdating) {
                     this.update();
                 } else if (!this.deferred && this.ready) {
-                    this.root._defAttrs[this.root._defAttrs.length] = this;
+                    this.root._deferred.attrs.push(this);
                     this.deferred = true;
                 }
             },
@@ -4543,62 +4610,8 @@ var render_DomFragment_Attribute__Attribute = function (namespaces, enforceCase,
                 return this.name + '=' + JSON.stringify(str);
             }
         };
-        determineNameAndNamespace = function (attribute, name) {
-            var colonIndex, namespacePrefix;
-            colonIndex = name.indexOf(':');
-            if (colonIndex !== -1) {
-                namespacePrefix = name.substr(0, colonIndex);
-                if (namespacePrefix !== 'xmlns') {
-                    name = name.substring(colonIndex + 1);
-                    attribute.name = enforceCase(name);
-                    attribute.lcName = attribute.name.toLowerCase();
-                    attribute.namespace = namespaces[namespacePrefix.toLowerCase()];
-                    if (!attribute.namespace) {
-                        throw 'Unknown namespace ("' + namespacePrefix + '")';
-                    }
-                    return;
-                }
-            }
-            attribute.name = attribute.element.namespace !== namespaces.html ? enforceCase(name) : name;
-            attribute.lcName = attribute.name.toLowerCase();
-        };
-        setStaticAttribute = function (attribute, options) {
-            var node, value = options.value === null ? '' : options.value;
-            if (node = options.pNode) {
-                if (attribute.namespace) {
-                    node.setAttributeNS(attribute.namespace, options.name, value);
-                } else {
-                    if (options.name === 'style' && node.style.setAttribute) {
-                        node.style.setAttribute('cssText', value);
-                    } else if (options.name === 'class' && (!node.namespaceURI || node.namespaceURI === namespaces.html)) {
-                        node.className = value;
-                    } else {
-                        node.setAttribute(options.name, value);
-                    }
-                }
-                if (attribute.name === 'id') {
-                    options.root.nodes[options.value] = node;
-                }
-                if (attribute.name === 'value') {
-                    node._ractive.value = options.value;
-                }
-            }
-            attribute.value = options.value;
-        };
-        determinePropertyName = function (attribute, options) {
-            var propertyName;
-            if (attribute.pNode && !attribute.namespace && (!options.pNode.namespaceURI || options.pNode.namespaceURI === namespaces.html)) {
-                propertyName = propertyNames[attribute.name] || attribute.name;
-                if (options.pNode[propertyName] !== undefined) {
-                    attribute.propertyName = propertyName;
-                }
-                if (typeof options.pNode[propertyName] === 'boolean' || propertyName === 'value') {
-                    attribute.useProperty = true;
-                }
-            }
-        };
         return DomAttribute;
-    }(config_namespaces, render_DomFragment_shared_enforceCase, render_DomFragment_Attribute_bindAttribute, render_DomFragment_Attribute_updateAttribute, render_StringFragment__StringFragment);
+    }(render_DomFragment_Attribute_helpers_determineNameAndNamespace, render_DomFragment_Attribute_helpers_setStaticAttribute, render_DomFragment_Attribute_helpers_determinePropertyName, render_DomFragment_Attribute_prototype_bind, render_DomFragment_Attribute_prototype_update, render_StringFragment__StringFragment);
 var render_DomFragment_Element_initialise_createElementAttributes = function (DomAttribute) {
         
         return function (element, attributes) {
@@ -4772,7 +4785,7 @@ var render_DomFragment_Element_initialise_decorate__decorate = function (Decorat
         
         return function (descriptor, root, owner, contextStack) {
             owner.decorator = new Decorator(descriptor, root, owner, contextStack);
-            root._defDecorators.push(owner.decorator);
+            root._deferred.decorators.push(owner.decorator);
         };
     }(render_DomFragment_Element_initialise_decorate_Decorator);
 var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function (StringFragment) {
@@ -5097,6 +5110,7 @@ var render_DomFragment_Element_shared_executeTransition_Transition = function (i
                         if (changedProperties.length) {
                             return;
                         }
+                        t.root.fire(t.name + ':end');
                         t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
                         if (t.isIntro) {
                             t.resetStyle();
@@ -5182,7 +5196,7 @@ var render_DomFragment_Element_shared_executeTransition__executeTransition = fun
                 node._ractive.transition = transition;
                 transition._manager.push(node);
                 if (isIntro) {
-                    root._defTransitions.push(transition);
+                    root._deferred.transitions.push(transition);
                 } else {
                     transition.init();
                 }
@@ -5270,7 +5284,7 @@ var render_DomFragment_Element_initialise__initialise = function (types, namespa
                     }
                 }
                 if (element.node.autofocus) {
-                    root._defFocusable = element.node;
+                    root._deferred.focusable = element.node;
                 }
             }
             updateLiveQueries(element);
@@ -5554,7 +5568,7 @@ var render_DomFragment_Component_ComponentParameter = function (StringFragment) 
                 if (this.selfUpdating) {
                     this.update();
                 } else if (!this.deferred && this.ready) {
-                    this.root._defAttrs[this.root._defAttrs.length] = this;
+                    this.root._deferred.attrs.push(this);
                     this.deferred = true;
                 }
             },
@@ -5927,6 +5941,9 @@ var Ractive_prototype_render = function (getElement, makeTransitionManager, preD
         
         return function (target, complete) {
             var transitionManager;
+            if (!this._initing) {
+                throw new Error('You cannot call ractive.render() directly!');
+            }
             this._transitionManager = transitionManager = makeTransitionManager(this, complete);
             this.fragment = new DomFragment({
                 descriptor: this.template,
@@ -5944,7 +5961,14 @@ var Ractive_prototype_render = function (getElement, makeTransitionManager, preD
             this.rendered = true;
         };
     }(utils_getElement, shared_makeTransitionManager, shared_preDomUpdate, shared_postDomUpdate, render_DomFragment__DomFragment);
-var Ractive_prototype_renderHTML = function () {
+var Ractive_prototype_renderHTML = function (warn) {
+        
+        return function () {
+            warn('renderHTML() has been deprecated and will be removed in a future version. Please use toHTML() instead');
+            return this.toHTML();
+        };
+    }(utils_warn);
+var Ractive_prototype_toHTML = function () {
         
         return function () {
             return this.fragment.toString();
@@ -6172,7 +6196,7 @@ var Ractive_prototype_insert = function (getElement) {
             target.insertBefore(this.detach(), anchor);
         };
     }(utils_getElement);
-var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, teardown, add, subtract, toggle, merge, detach, insert) {
+var Ractive_prototype__prototype = function (get, set, update, updateModel, animate, on, off, observe, fire, find, findAll, render, renderHTML, toHTML, teardown, add, subtract, toggle, merge, detach, insert) {
         
         return {
             get: get,
@@ -6187,6 +6211,7 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
             find: find,
             findAll: findAll,
             renderHTML: renderHTML,
+            toHTML: toHTML,
             render: render,
             teardown: teardown,
             add: add,
@@ -6196,7 +6221,7 @@ var Ractive_prototype__prototype = function (get, set, update, updateModel, anim
             detach: detach,
             insert: insert
         };
-    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
+    }(Ractive_prototype_get__get, Ractive_prototype_set, Ractive_prototype_update, Ractive_prototype_updateModel, Ractive_prototype_animate__animate, Ractive_prototype_on, Ractive_prototype_off, Ractive_prototype_observe__observe, Ractive_prototype_fire, Ractive_prototype_find, Ractive_prototype_findAll, Ractive_prototype_render, Ractive_prototype_renderHTML, Ractive_prototype_toHTML, Ractive_prototype_teardown, Ractive_prototype_add, Ractive_prototype_subtract, Ractive_prototype_toggle, Ractive_prototype_merge__merge, Ractive_prototype_detach, Ractive_prototype_insert);
 var extend_registries = function () {
         
         return [
@@ -6483,6 +6508,10 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 }
             }
             defineProperties(ractive, {
+                _initing: {
+                    value: true,
+                    writable: true
+                },
                 _guid: {
                     value: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                         var r, v;
@@ -6498,19 +6527,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 _depsMap: { value: create(null) },
                 _patternObservers: { value: [] },
                 _pendingResolution: { value: [] },
-                _defAttrs: { value: [] },
-                _defEvals: { value: [] },
-                _defSelectValues: { value: [] },
-                _defCheckboxes: { value: [] },
-                _defRadios: { value: [] },
-                _defObservers: { value: [] },
-                _defTransitions: { value: [] },
-                _defLiveQueries: { value: [] },
-                _defDecorators: { value: [] },
-                _defFocusable: {
-                    value: null,
-                    writable: true
-                },
+                _deferred: { value: {} },
                 _evaluators: { value: create(null) },
                 _twowayBindings: { value: {} },
                 _transitionManager: {
@@ -6521,6 +6538,21 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
                 nodes: { value: {} },
                 _wrapped: { value: create(null) },
                 _liveQueries: { value: [] }
+            });
+            defineProperties(ractive._deferred, {
+                attrs: { value: [] },
+                evals: { value: [] },
+                selectValues: { value: [] },
+                checkboxes: { value: [] },
+                radios: { value: [] },
+                observers: { value: [] },
+                transitions: { value: [] },
+                liveQueries: { value: [] },
+                decorators: { value: [] },
+                focusable: {
+                    value: null,
+                    writable: true
+                }
             });
             ractive.data = options.data;
             ractive.adaptors = options.adaptors;
@@ -6586,6 +6618,7 @@ var Ractive_initialise = function (isClient, errors, warn, create, extend, defin
             }
             ractive.render(ractive.el, options.complete);
             ractive.transitionsEnabled = options.transitionsEnabled;
+            ractive._initing = false;
         };
     }(config_isClient, config_errors, utils_warn, utils_create, utils_extend, utils_defineProperties, utils_getElement, utils_isObject, Ractive_prototype_get_magicAdaptor, parse__parse);
 var extend_initChildInstance = function (initOptions, clone, fillGaps, wrapMethod, initialise) {
@@ -6638,9 +6671,19 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
         var Ractive = function (options) {
             initialise(this, options);
         };
-        Ractive.prototype = prototype;
+        defineProperties(Ractive, {
+            prototype: { value: prototype },
+            partials: { value: partialRegistry },
+            adaptors: { value: adaptorRegistry },
+            easing: { value: easingRegistry },
+            transitions: { value: {} },
+            events: { value: {} },
+            components: { value: {} },
+            decorators: { value: {} },
+            VERSION: { value: '0.3.8-pre' }
+        });
+        Ractive.eventDefinitions = Ractive.events;
         Ractive.prototype.constructor = Ractive;
-        Ractive.partials = partialRegistry;
         Ractive.delimiters = [
             '{{',
             '}}'
@@ -6649,15 +6692,8 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
             '{{{',
             '}}}'
         ];
-        Ractive.adaptors = adaptorRegistry;
-        Ractive.transitions = {};
-        Ractive.events = Ractive.eventDefinitions = {};
-        Ractive.easing = easingRegistry;
-        Ractive.components = {};
-        Ractive.decorators = {};
         Ractive.extend = Ractive_extend;
         Ractive.parse = parse;
-        Ractive.VERSION = '0.3.8-pre';
         circular.Ractive = Ractive;
         return Ractive;
     }(utils_create, utils_defineProperties, Ractive_prototype__prototype, registries_partials, registries_adaptors, registries_easing, extend__extend, parse__parse, Ractive_initialise, circular);
