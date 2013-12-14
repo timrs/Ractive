@@ -83,11 +83,11 @@ define([
 				this.attributes = attrs.map( getFrag );
 			}
 
+			// Process directives (proxy events, transitions, and decorators)
 			if ( proxies.length ) {
 				this.proxies = proxies.map( processDirective );
 			}
 
-			// TODO rename this helper function
 			if ( filtered.intro ) {
 				this.intro = processDirective( filtered.intro );
 			}
@@ -97,10 +97,6 @@ define([
 			}
 
 			if ( filtered.decorator ) {
-				// TODO figure out the syntax for decorators - can we have multiple
-				// decorators? Decorators with arguments?
-				
-				//this.decorator = filtered.decorator.value[0].value;
 				this.decorator = processDirective( filtered.decorator );
 			}
 		}

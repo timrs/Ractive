@@ -28,28 +28,37 @@ define([
 		initialise( this, options );
 	};
 
-	// Prototype methods
-	Ractive.prototype = prototype;
+	// Read-only properties
+	defineProperties( Ractive, {
+		
+		// Prototype methods
+		prototype: { value: prototype },
+
+		// Shared properties
+		partials: { value: partialRegistry },
+
+		// Plugins
+		adaptors:    { value: adaptorRegistry },
+		easing:      { value: easingRegistry },
+		transitions: { value: {} },
+		events:      { value: {} },
+		components:  { value: {} },
+		decorators:  { value: {} },
+
+		VERSION:     { value: '<%= version %>' }
+	});
+
+	// TODO deprecated
+	Ractive.eventDefinitions = Ractive.events;
+
 	Ractive.prototype.constructor = Ractive;
 
-	// Shared properties - TODO make these read-only
-	Ractive.partials = partialRegistry;
 	Ractive.delimiters = [ '{{', '}}' ];
 	Ractive.tripleDelimiters = [ '{{{', '}}}' ];
-
-	// Plugins
-	Ractive.adaptors = adaptorRegistry;
-	Ractive.transitions = {};
-	Ractive.events = Ractive.eventDefinitions = {};
-	Ractive.easing = easingRegistry;
-	Ractive.components = {};
-	Ractive.decorators = {};
 
 	// Static methods
 	Ractive.extend = Ractive_extend;
 	Ractive.parse = parse;
-
-	Ractive.VERSION = '<%= version %>';
 
 	circular.Ractive = Ractive;
 	return Ractive;

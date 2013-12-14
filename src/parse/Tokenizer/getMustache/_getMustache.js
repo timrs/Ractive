@@ -57,8 +57,6 @@ define([
 		if ( !tokenizer.getStringMatch( delimiters[1] ) ) {
 			tokenizer.pos = start;
 			return null;
-
-			// TODO? tokenizer.expected( '"' + delimiters[1] + '"' );
 		}
 
 		return content;
