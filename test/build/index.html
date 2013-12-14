@@ -14,6 +14,8 @@
 	<script src='../vendor/require.js'></script>
 	
 	<script>
+		QUnit.config.autostart = false;
+
 		require.config({ baseUrl: '../../tmp' });
 
 		require([
@@ -43,6 +45,8 @@
 			merge();
 			observe();
 			find();
+			
+			QUnit.start();
 		});
 	</script>
 </body>

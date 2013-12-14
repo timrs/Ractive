@@ -17,11 +17,11 @@ renderTests.forEach( function ( theTest ) {
 			partials: theTest.partials
 		});
 
-		test.equal( normaliseHTML( ractive.renderHTML() ), normaliseHTML( theTest.result ) );
+		test.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.result ) );
 
 		if ( theTest.new_data ) {
 			ractive.set( theTest.new_data );
-			test.equal( normaliseHTML( ractive.renderHTML() ), normaliseHTML( theTest.new_result ) );
+			test.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.new_result ) );
 		}
 
 		test.done();

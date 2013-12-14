@@ -14,10 +14,13 @@
 	<script src='../vendor/require.js'></script>
 	
 	<script>
+		QUnit.config.autostart = false;
+
 		require.config({ baseUrl: '../../tmp' });
 
 		require([ '../test/tests/merge' ], function ( merge ) {
 			merge();
+			QUnit.start();
 		});
 	</script>
 </body>

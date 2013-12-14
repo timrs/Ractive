@@ -14,10 +14,13 @@
 	<script src='../vendor/require.js'></script>
 	
 	<script>
+		QUnit.config.autostart = false;
+
 		require.config({ baseUrl: '../../tmp' });
 
 		require([ '../test/tests/misc' ], function ( misc ) {
 			misc();
+			QUnit.start();
 		});
 	</script>
 </body>
