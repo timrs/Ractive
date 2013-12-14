@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+* 0.3.8
+    * Reorganised project into AMD modules, using [amdclean](https://github.com/gfranko/amdclean) during build
+    * Decorators - decorate elements with functionality, e.g. tooltips, jQuery UI widgets, etc ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Decorators))
+    * Moved plugins (adaptors, decorators, custom events, transitions) out of the main codebase and into [separate repositories](https://github.com/RactiveJS/Ractive/wiki/Plugins). Note: [plugin APIs](https://github.com/RactiveJS/Ractive/wiki/Plugin-APIs) have changed!
+    * `ractive.merge()` - merge items from one array into another (e.g. updating with data from a server) ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/ractive.merge%28%29))
+    * Pattern observers - observe e.g. `items[*].status`
+    * Contenteditable support (thanks [@aphitiel](https://github.com/aphitiel) and [@Nijikokun](https://github.com/Nijikokun))
+    * `ractive.insert()` and `ractive.detach()` methods for moving a Ractive instance in and out of the DOM without destroying it
+    * `ractive.toHTML()` replaces `ractive.renderHTML()`
+    * `ractive.findAll( selector, { live: true })` maintains a live list of elements matching any CSS selector
+    * Various bugfixes
 * 0.3.7
     * Adaptors - use external libraries like Backbone seamlessly with Ractive ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Adaptors))
     * Dependency tracking within functions, by monitoring `ractive.get()`)
