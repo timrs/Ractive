@@ -1,4 +1,4 @@
-define([ 'render/StringFragment/_StringFragment' ], function ( StringFragment ) {
+define([ 'utils/warn', 'render/StringFragment/_StringFragment' ], function ( warn, StringFragment ) {
 
 	'use strict';
 
@@ -36,6 +36,11 @@ define([ 'render/StringFragment/_StringFragment' ], function ( StringFragment ) 
 		if ( definition = this.root.events[ eventName ] ) {
 			this.custom = definition( this.node, getCustomHandler( eventName ) );
 		} else {
+			// Looks like we're dealing with a standard DOM event... but let's check
+			if ( !this.node.hasOwnProperty( 'on' + eventName ) ) {
+				warn( 'Missing "' + this.name + '" event. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#events' );
+			}
+
 			this.node.addEventListener( eventName, genericHandler, false );
 		}
 	};
