@@ -1,6 +1,6 @@
 /*
 	
-	Ractive - v0.3.8-pre - 2013-12-14
+	Ractive - v0.3.8 - 2013-12-14
 	==============================================================
 
 	Next-generation DOM manipulation - http://ractivejs.org
@@ -4477,7 +4477,7 @@ var render_DomFragment_Element_initialise_decorate__decorate = function (Decorat
             root._deferred.decorators.push(owner.decorator);
         };
     }(render_DomFragment_Element_initialise_decorate_Decorator);
-var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function (StringFragment) {
+var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = function (warn, StringFragment) {
         
         var addEventProxy, MasterEventHandler, ProxyEvent, firePlainEvent, fireEventWithArgs, fireEventWithDynamicArgs, customHandlers, genericHandler, getCustomHandler;
         addEventProxy = function (element, triggerEventName, proxyDescriptor, contextStack, indexRefs) {
@@ -4497,6 +4497,9 @@ var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = functi
             if (definition = this.root.events[eventName]) {
                 this.custom = definition(this.node, getCustomHandler(eventName));
             } else {
+                if (!this.node.hasOwnProperty('on' + eventName)) {
+                    warn('Missing "' + this.name + '" event. You may need to download a plugin via https://github.com/RactiveJS/Ractive/wiki/Plugins#events');
+                }
                 this.node.addEventListener(eventName, genericHandler, false);
             }
         };
@@ -4609,7 +4612,7 @@ var render_DomFragment_Element_initialise_addEventProxies_addEventProxy = functi
             };
         };
         return addEventProxy;
-    }(render_StringFragment__StringFragment);
+    }(utils_warn, render_StringFragment__StringFragment);
 var render_DomFragment_Element_initialise_addEventProxies__addEventProxies = function (addEventProxy) {
         
         return function (element, proxies) {
@@ -8558,7 +8561,7 @@ var Ractive__Ractive = function (create, defineProperties, prototype, partialReg
             events: { value: {} },
             components: { value: {} },
             decorators: { value: {} },
-            VERSION: { value: '0.3.8-pre' }
+            VERSION: { value: '0.3.8' }
         });
         Ractive.eventDefinitions = Ractive.events;
         Ractive.prototype.constructor = Ractive;
