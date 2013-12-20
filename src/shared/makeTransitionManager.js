@@ -82,6 +82,12 @@ define( function () {
 			},
 			detachWhenReady: function ( element ) {
 				elementsToDetach[ elementsToDetach.length ] = element;
+			},
+			getElementsToDetach: function() {
+				return elementsToDetach;
+			},
+			detachNodes: function() {
+				detachNodes();
 			}
 		};
 
