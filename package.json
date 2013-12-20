@@ -1,5 +1,5 @@
 {
-  "name": "ractive",
+  "name": "rstyle-ractive",
   "description": "Next-generation DOM manipulation",
   "version": "0.3.8",
   "homepage": "http://ractivejs.org",
@@ -40,7 +40,7 @@
     "Templating"
   ],
   "bugs": {
-    "url": "https://github.com/RactiveJS/Ractive/issues"
+    "url": "https://github.com/rewardStyle/Ractive/issues"
   },
   "contributors": [
     {
@@ -58,9 +58,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/RactiveJS/Ractive.git"
+    "url": "https://github.com/rewardStyle/Ractive"
   },
-  "github": "https://github.com/RactiveJS/Ractive",
+  "github": "https://github.com/rewardStyle/Ractive",
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-jshint": "~0.7.2",
